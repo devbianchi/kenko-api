@@ -1,0 +1,1 @@
+CREATE INDEX ix_horario_inicio      ON horario (inicio);

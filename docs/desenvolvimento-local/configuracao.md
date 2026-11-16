@@ -55,8 +55,8 @@ Para não digitar a cada sessão, use um arquivo `.env` local (já ignorado pelo
 |---|---|---|
 | (padrão, sem perfil) | Execução local | Usa as variáveis acima. |
 | `dev` | Desenvolvimento com logs de SQL | `spring.jpa.show-sql` não se aplica (não usamos JPA). Ativa `logging.level.org.springframework.jdbc=DEBUG`. |
-| `test` | Testes | Usa o container do Testcontainers. Desativa `kenko.seed` se existir. |
-| `demo` | Apresentação | Carrega os seeds de demonstração após as migrations. Ver [documentação de seeds](../seeds-demonstracao/README.md). |
+| `test` | Testes | Usa o container do Testcontainers. Não carrega a demonstração, pois não ativa `demo`. |
+| `demo` | Apresentação | Carrega os seeds de demonstração após as migrations. É o único controle da carga ([ADR-0009](../adr/0009-carga-de-demonstracao-por-perfil.md)). Ver [documentação de seeds](../seeds-demonstracao/README.md). |
 
 Ativar um perfil:
 

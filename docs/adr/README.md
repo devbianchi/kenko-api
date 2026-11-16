@@ -14,3 +14,4 @@ Uma decisão aceita não é editada para refletir uma mudança posterior. Para r
 | [0006](0006-idempotencia-e-revisao.md) | Idempotência por `actionId` e controle de revisão | Aceita | 2026-11-14 |
 | [0007](0007-indice-unico-parcial-reserva.md) | Proteção contra dupla reserva com índice único parcial | Aceita | 2026-11-14 |
 | [0008](0008-cors-e-origem-do-frontend.md) | Origem do frontend liberada por CORS com configuração externa | Aceita | 2026-11-16 |
+| [0009](0009-carga-de-demonstracao-por-perfil.md) | Carga de demonstração controlada pelo perfil `demo` | Aceita | 2026-11-16 |

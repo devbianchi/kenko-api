@@ -102,8 +102,11 @@ Todo erro segue este formato:
 | Código | HTTP | Significado |
 |---|---|---|
 | `INVALID_PERIOD` | 400 | `period` ou `reference` malformado para o tipo de período. |
+| `INVALID_DATE_RANGE` | 400 | `endDateExclusive` não é posterior a `startDate`. |
+| `FUTURE_PERIOD` | 400 | Referência posterior ao dia (`week`), ao mês (`month`) ou ao ano (`year`) atual. |
 | `STALE_CONVERSATION_STATE` | 409 | `expectedRevision` diferente do estado atual. Consulte `GET /api/conversations/{id}`. |
 | `CONVERSATION_ABANDONED` | 409 | Conversa sem atividade há mais de uma hora. Inicie outra conversa. |
+| `CONVERSATION_CLOSED` | 409 | Conversa encerrada pelo paciente com Sair. Inicie outra conversa. |
 | `SLOT_UNAVAILABLE` | 409 | O horário foi reservado por outro atendimento. Novas opções são retornadas. |
 | `INVALID_OPTION` | 422 | Opção não pertence ao passo atual. |
 

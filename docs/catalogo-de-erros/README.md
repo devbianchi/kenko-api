@@ -114,8 +114,8 @@ Um erro de servidor não deve deixar a conversa em estado parcial: a transação
 | # | Pendência | Proposta |
 |---|---|---|
 | P1 | `APPOINTMENT_NOT_IN_CONVERSATION` aparece em discussões, mas não está nos documentos aprovados. | **Decidido:** removido. A reserva de outra conversa responde `APPOINTMENT_NOT_FOUND` (404), conforme VAL-08. |
-| P2 | `CONVERSATION_CLOSED` e `CONVERSATION_ABANDONED` não aparecem no README da API, que cita apenas o segundo. | Acrescentar `CONVERSATION_CLOSED` ao README da API. |
-| P3 | `INVALID_DATE_RANGE` e `FUTURE_PERIOD` não estão no README da API. | Acrescentar aos contratos ao mesmo tempo que este catálogo for aprovado. |
+| P2 | `CONVERSATION_CLOSED` e `CONVERSATION_ABANDONED` não aparecem no README da API, que cita apenas o segundo. | **Decidido:** `CONVERSATION_CLOSED` acrescentado ao README da API. |
+| P3 | `INVALID_DATE_RANGE` e `FUTURE_PERIOD` não estão no README da API. | **Decidido:** acrescentados ao README da API. |
 | P4 | Ordem de precedência quando uma requisição tem mais de um erro (ex.: `actionId` repetido e revisão antiga). | Regra do ADR-0006: verificar idempotência antes de revisão. Confirmar que o catálogo segue a mesma ordem. |
 | P5 | `PATIENT_ALREADY_IDENTIFIED` pode nunca ocorrer, se o fluxo impede o reenvio. | **Decidido:** removido. Reenvio com o mesmo `actionId` devolve o resultado salvo (ADR-0006). |
 

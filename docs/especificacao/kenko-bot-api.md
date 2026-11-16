@@ -1,5 +1,7 @@
 # Kenko — Fluxo, contratos e convenções do bot
 
+> **Autoridade:** em caso de divergência, vale [docs/endpoint/README.md](../endpoint/README.md).
+
 Complemento do escopo acadêmico — [escopo-kenko-v2.md](../escopo/escopo-kenko-v2.md) — e da especificação de endpoints, JSON e queries — [kenko-backend-api.md](kenko-backend-api.md). A abordagem recomendada foi aprovada: bot no backend, HTTP comum e um endpoint de interações, com responsabilidades internas separadas.
 
 ## 1. Requisitos e decisões técnicas

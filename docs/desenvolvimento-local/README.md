@@ -68,7 +68,7 @@ Os testes de integração usam Testcontainers e exigem Docker em execução. Se 
 ## Ciclo de trabalho recomendado
 
 1. Atualize a branch principal: `git switch main` e `git pull --ff-only`.
-2. Crie a branch da tarefa, como indicado no `git-workflow`.
+2. Crie a branch da tarefa com nome descritivo, sem o nome de ferramentas de IA. Ex.: `feat/clinic-resource`.
 3. Rode `./mvnw test` antes de começar, para confirmar o estado inicial.
 4. Desenvolva em pequenos passos, rodando a classe de teste relacionada a cada mudança.
 5. Antes do commit, rode a suíte completa.

@@ -108,7 +108,7 @@ Não criar um endpoint por cartão. Não é necessário endpoint público indivi
 
 ### 3.4 Calendário: intervalo definido pelo frontend
 
-**Finalidade:** contagens de todas as datas visíveis, inclusive meses vizinhos. **Contrato:** `GET /api/calendar?startDate=YYYY-MM-DD&endDateExclusive=YYYY-MM-DD`. Ambos são obrigatórios; início deve ser anterior ao fim. As datas são interpretadas à meia-noite no fuso do sistema. **JSON:** seção 4.3.
+**Finalidade:** contagens de todas as datas visíveis, inclusive meses vizinhos. **Contrato:** `GET /api/calendar?startDate=YYYY-MM-DD&endDateExclusive=YYYY-MM-DD`. Ambos são obrigatórios; início deve ser anterior ao fim. As datas são interpretadas à meia-noite no fuso de negócio `America/Sao_Paulo` (ADR-0005). **JSON:** seção 4.3.
 
 O frontend monta a grade e escolhe se há cinco ou seis linhas. Por exemplo, uma grade de 27/09 a 31/10 envia início 27/09 e fim exclusivo 01/11. Se desenhar mais uma semana, envia o novo fim. O backend apenas consulta o intervalo recebido.
 

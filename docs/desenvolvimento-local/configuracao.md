@@ -13,7 +13,7 @@ A configuração fica em `src/main/resources/application.properties` e em arquiv
 | `spring.datasource.password` | `${DB_PASSWORD}` | Senha. Sem valor padrão. |
 | `spring.flyway.enabled` | `true` | Aplica as migrations na inicialização. |
 | `kenko.timezone` | `America/Sao_Paulo` | Fuso de negócio usado pelo bean `Clock`. |
-| `kenko.cors.allowed-origins` | `http://localhost:5173` | Origem do frontend (ver ADR e contrato de CORS). |
+| `kenko.cors.allowed-origins` | `http://localhost:5173` | Origem do frontend, separada por vírgula (ver [ADR-0008](../adr/0008-cors-e-origem-do-frontend.md)). |
 
 Ao colocar `${DB_PASSWORD}` sem valor padrão, a aplicação falha na inicialização se a variável não existir. Isso é intencional: evita subir com credencial vazia.
 

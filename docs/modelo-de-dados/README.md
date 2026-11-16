@@ -40,5 +40,5 @@ Decisões que sustentam este modelo: [ADR-0001](../adr/0001-postgresql.md), [ADR
 | P1 | Confirmar que V1 a V9 não foram aplicadas em nenhum ambiente. | **Decidido:** nunca aplicadas. As correções editam os arquivos. | Equipe |
 | P2 | `opcao_roteiro.acao` é texto livre. Definir o conjunto fechado de ações (`go_menu`, `exit`, `schedule`, etc.) ou uma tabela de referência. | **Decidido:** `CHECK` fechado na V8. | Equipe |
 | P3 | Confirmar a lista de etapas do roteiro (`etapa` em `passo_roteiro`). | **Decidido:** lista em inglês na V7, ver `migrations.md`. | Equipe |
-| P4 | Revisão incrementa em `Sair` e em abandono? | Afeta se `conversa.revisao` muda ao encerrar. | Equipe |
+| P4 | Revisão incrementa em `Sair` e em abandono? | **Decidido:** `Sair` incrementa a revisão, por ser interação aceita. Abandono não incrementa, por ser derivado e sem escrita. | Equipe |
 | P5 | Coluna `inicio` em `conversa` é `TIMESTAMPTZ` com default? Quem preenche: banco ou aplicação? | **Decidido:** sem default; a aplicação preenche com o `Clock`. | Equipe |

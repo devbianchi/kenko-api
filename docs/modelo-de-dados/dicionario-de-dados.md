@@ -102,7 +102,7 @@ Sugestão de índices (V17): `(id_medico, inicio)` e `(id_sala, inicio)`.
 | `id_tentativa_atual` | INT | nullable, FK `tentativa` (V18) | **Nova.** FK adicionada em V18 por dependência circular. |
 | `inicio` | TIMESTAMPTZ | NOT NULL | Preenchido pela aplicação com o `Clock` (P5). |
 | `ultima_interacao` | TIMESTAMPTZ | NOT NULL | **Nova.** Base do abandono. Atualizada por interação do paciente, nunca por GET. |
-| `revisao` | INT | NOT NULL, DEFAULT 0 | Controle de conflito (ADR-0006). |
+| `revisao` | INT | NOT NULL, DEFAULT 0 | Controle de conflito (ADR-0006). Incrementada por toda interação aceita, inclusive `Sair`. Abandono não altera. |
 | `encerrada_em` | TIMESTAMPTZ | nullable | |
 | `encerramento_motivo` | VARCHAR(30) | nullable | |
 | `encerramento_etapa` | VARCHAR(30) | nullable | Etapa analítica de saída, não o nome técnico. |
@@ -182,7 +182,7 @@ Restrição: `UNIQUE (id_conversa, action_id)`. É o que garante a idempotência
 
 | Coluna | Tipo | Restrições | Observação |
 |---|---|---|---|
-| `id_busca` | BIGINT | PK, identity | |
+| `id_busca` | INT | PK, identity | |
 | `id_conversa` | INT | NOT NULL, FK `conversa` | |
 | `id_tentativa` | INT | NOT NULL, FK `tentativa` | |
 | `id_especialidade` | INT | NOT NULL, FK `especialidade` | |
@@ -233,6 +233,6 @@ Status (completa, pendente, cancelada) é derivado: cancelada se `cancelada_em` 
 |---|---|---|
 | P6 | `paciente.id_conversa` e `conversa.id_paciente` representam o mesmo vínculo nos dois sentidos. | **Decidido:** mantém-se só `conversa.id_paciente` (UNIQUE). `paciente.id_conversa` foi removido da V10. |
 | P7 | `horario` não tem coluna de duração; o fim é explícito. | Confirmado pelo escopo (RN-13). Sem ação. |
-| P8 | Tipo de `id` em `interacao`, `evento_conversa` e `acao_processada` é BIGINT. Os demais são INT. | Pendente de decisão da equipe. |
+| P8 | Tipo de `id` em `interacao`, `evento_conversa` e `acao_processada` é BIGINT. Os demais são INT. | **Decidido:** BIGINT nessas três tabelas de alto volume; INT nas demais, incluindo `busca_sem_horario`. |
 
 Pendências já decididas nesta fase: P1 (V1 a V9 nunca aplicadas, então as correções editam os arquivos), P2 (conjunto fechado de `acao` na V8), P3 (etapas em inglês na V7, com `appointments`, `clinic_information` e `closed`) e P5 (`inicio` preenchido pela aplicação com o `Clock`).

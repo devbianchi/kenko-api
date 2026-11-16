@@ -144,6 +144,8 @@ Sem parâmetros.
 }
 ```
 
+**Regra de `openingHours`:** dias consecutivos da semana com o mesmo horário viram um único item, ordenados pelo primeiro dia (domingo = 0). Horários diferentes geram itens separados. Dia fechado vira `{"weekdays": [...], "closed": true}`.
+
 Dias da semana: `0` é domingo, `1` segunda, até `6` sábado. Abertura incluída, fechamento excluído.
 
 ### Home
@@ -645,7 +647,7 @@ GET /api/conversations/cv_1/appointments
 - **Confirmação:** é transacional. Só retorna sucesso depois de persistir a reserva.
 - **Primeira reserva:** o envio válido de nome e nascimento conclui o agendamento, sem tela extra.
 - **Reservas seguintes da mesma conversa:** a seleção válida do horário confirma usando o paciente já identificado. Nome e nascimento não são pedidos de novo.
-- **Sair:** encerra a conversa com mensagem de adeus. Não cancela reservas já confirmadas.
+- **Sair:** encerra a conversa com mensagem de adeus. Não cancela reservas já confirmadas. Incrementa `revision`, como qualquer interação aceita.
 - **Retorno ao menu:** após qualquer tarefa concluída. A conversa não é encerrada.
 
 ## Regras que afetam as respostas

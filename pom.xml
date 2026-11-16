@@ -11,20 +11,34 @@
 	<groupId>com.kenko</groupId>
 	<artifactId>kenko-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
+	<name>Kenko API</name>
+	<description>API REST do sistema de atendimento e agendamento automatizado da clínica Kenko, com bot de agendamento e painel de indicadores.</description>
+	<url>https://github.com/devbianchi/kenko-api</url>
 	<developers>
-		<developer/>
+		<developer>
+			<name>Guilherme Machado</name>
+		</developer>
+		<developer>
+			<name>Gustavo Gomes</name>
+		</developer>
+		<developer>
+			<name>Gustavo Barguena</name>
+		</developer>
+		<developer>
+			<name>Guilherme Pepe</name>
+		</developer>
+		<developer>
+			<name>Flávio Betarelli</name>
+		</developer>
+		<developer>
+			<name>Arthur Lima</name>
+		</developer>
 	</developers>
 	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
+		<connection>scm:git:https://github.com/devbianchi/kenko-api.git</connection>
+		<developerConnection>scm:git:https://github.com/devbianchi/kenko-api.git</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/devbianchi/kenko-api</url>
 	</scm>
 	<properties>
 		<java.version>25</java.version>

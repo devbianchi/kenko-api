@@ -52,7 +52,7 @@ Erros de domínio que se referem a um campo específico também podem trazer `fi
 | `INVALID_MONTH` | `month` fora do formato `YYYY-MM` ou mês inválido. | `{campo}: "Formato inválido."` | Corrigir o formato. |
 | `INVALID_DATE_RANGE` | `endDateExclusive` não é posterior a `startDate`. | `endDateExclusive: "Deve ser posterior a startDate."` | Corrigir o intervalo. |
 | `INVALID_PERIOD` | `period` fora de `week`, `month`, `year`, ou `reference` incompatível com o período. | `{campo}: "..."` | Corrigir o período ou a referência. |
-| `FUTURE_PERIOD` | Referência de período posterior ao mês ou ano atual, em Analytics. | `reference: "Período futuro não permitido."` | Escolher um período já iniciado. |
+| `FUTURE_PERIOD` | Referência de período posterior ao dia (`week`), ao mês (`month`) ou ao ano (`year`) atual, em Analytics. | `reference: "Período futuro não permitido."` | Escolher um período já iniciado. |
 | `INVALID_IDS` | `ids` com mais de 50 itens, vazio ou com formato inválido. | `ids: "..."` | Dividir a lista ou corrigir o formato. |
 | `INVALID_NAME` | Nome do paciente vazio ou acima do limite de caracteres. | `patient.name: "..."` | Solicitar o nome novamente. |
 | `INVALID_BIRTH_DATE` | Data de nascimento futura ou inexistente. | `patient.birthDate: "..."` | Solicitar a data novamente. |
@@ -78,7 +78,6 @@ Reserva de outra conversa retorna 404, e não 403, para não revelar que ela exi
 | `CONVERSATION_ABANDONED` | Última interação há mais de uma hora. | nenhum | Iniciar nova conversa. |
 | `SLOT_UNAVAILABLE` | Horário reservado por outro atendimento no momento da confirmação ou seleção. A resposta traz `view` com novas opções. | nenhum | Exibir o conflito e oferecer as opções retornadas. |
 | `APPOINTMENT_NOT_CANCELLABLE` | Reserva completa ou já cancelada. | nenhum | Não repetir; exibir o status atual da reserva. |
-| `APPOINTMENT_NOT_IN_CONVERSATION` | Reservada para uso interno; mantida como alias de `APPOINTMENT_NOT_FOUND`. Ver pendência P1. | nenhum | Tratar como `APPOINTMENT_NOT_FOUND`. |
 
 `SLOT_UNAVAILABLE` é o único erro 409 que traz `view` na resposta. Os demais não trazem.
 
@@ -89,7 +88,6 @@ Reserva de outra conversa retorna 404, e não 403, para não revelar que ela exi
 | `INVALID_OPTION` | `optionId` não pertence ao passo atual. | `optionId: "Opção indisponível neste passo."` | Reexibir as opções atuais. |
 | `INVALID_SLOT` | `slotId` não foi oferecido na tentativa atual. | `slotId: "Horário não oferecido nesta tentativa."` | Reexibir os horários da tentativa. |
 | `ACTION_NOT_ALLOWED_IN_STEP` | Tipo de entrada não aceito no passo atual (ex.: `submit_patient` na triagem). | `input.type: "..."` | Reexibir a view atual. |
-| `PATIENT_ALREADY_IDENTIFIED` | Envio de nome e nascimento em conversa cujo paciente já existe. Não é erro no fluxo normal; usado apenas se o cliente tentar reenviar. | nenhum | Seguir para a seleção de horário. |
 
 ## Erros de servidor
 
@@ -115,10 +113,10 @@ Um erro de servidor não deve deixar a conversa em estado parcial: a transação
 
 | # | Pendência | Proposta |
 |---|---|---|
-| P1 | `APPOINTMENT_NOT_IN_CONVERSATION` aparece em discussões, mas não está nos documentos aprovados. | Remover. A reserva de outra conversa responde `APPOINTMENT_NOT_FOUND` (404), conforme VAL-08. |
+| P1 | `APPOINTMENT_NOT_IN_CONVERSATION` aparece em discussões, mas não está nos documentos aprovados. | **Decidido:** removido. A reserva de outra conversa responde `APPOINTMENT_NOT_FOUND` (404), conforme VAL-08. |
 | P2 | `CONVERSATION_CLOSED` e `CONVERSATION_ABANDONED` não aparecem no README da API, que cita apenas o segundo. | Acrescentar `CONVERSATION_CLOSED` ao README da API. |
 | P3 | `INVALID_DATE_RANGE` e `FUTURE_PERIOD` não estão no README da API. | Acrescentar aos contratos ao mesmo tempo que este catálogo for aprovado. |
 | P4 | Ordem de precedência quando uma requisição tem mais de um erro (ex.: `actionId` repetido e revisão antiga). | Regra do ADR-0006: verificar idempotência antes de revisão. Confirmar que o catálogo segue a mesma ordem. |
-| P5 | `PATIENT_ALREADY_IDENTIFIED` pode nunca ocorrer, se o fluxo impede o reenvio. | Manter só se a equipe quiser o código; caso contrário, remover. |
+| P5 | `PATIENT_ALREADY_IDENTIFIED` pode nunca ocorrer, se o fluxo impede o reenvio. | **Decidido:** removido. Reenvio com o mesmo `actionId` devolve o resultado salvo (ADR-0006). |
 
-Os códigos de P1 e P5 são candidatos a remoção. Não remova sem aprovação, porque o frontend pode já ter sido escrito contra eles.
+Os códigos de P1 e P5 foram removidos do catálogo. Se o frontend já referencia algum deles, ele deve tratá-los como `INTERNAL_ERROR`.

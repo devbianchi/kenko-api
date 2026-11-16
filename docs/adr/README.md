@@ -13,3 +13,4 @@ Uma decisão aceita não é editada para refletir uma mudança posterior. Para r
 | [0005](0005-clock-por-requisicao.md) | Instante de avaliação único por requisição | Aceita | 2026-11-14 |
 | [0006](0006-idempotencia-e-revisao.md) | Idempotência por `actionId` e controle de revisão | Aceita | 2026-11-14 |
 | [0007](0007-indice-unico-parcial-reserva.md) | Proteção contra dupla reserva com índice único parcial | Aceita | 2026-11-14 |
+| [0008](0008-cors-e-origem-do-frontend.md) | Origem do frontend liberada por CORS com configuração externa | Aceita | 2026-11-16 |

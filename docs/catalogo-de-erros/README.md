@@ -4,8 +4,8 @@ Lista todos os códigos de erro que a API retorna, com o status HTTP, a condiç�
 
 Documentos relacionados:
 
-- [README da API](../../.agents/context/completo/kenko-backend-api.md): contratos e exemplos de resposta
-- [Bot — interações e validação](../../.agents/context/completo/kenko-bot-api.md#8-validações-estado-antigo-e-repetição)
+- [README da API](../especificacao/kenko-backend-api.md): contratos e exemplos de resposta
+- [Bot — interações e validação](../especificacao/kenko-bot-api.md#8-validações-estado-antigo-e-repetição)
 - [Estratégia de testes](../estrategia-de-testes/criterios.md): casos que verificam cada código
 - [ADR-0006](../adr/0006-idempotencia-e-revisao.md): origem dos códigos de revisão e idempotência
 

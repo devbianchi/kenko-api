@@ -1,6 +1,6 @@
 # Kenko API
 
-API REST do sistema de atendimento e agendamento da clínica Kenko. Ela atende o painel (Home, Calendário, Dia e Analytics) e o bot de agendamento do Showcase. Este README documenta os endpoints. As regras de negócio completas estão em `escopo-kenko-v2.md`, e os detalhes do bot em `kenko-bot-api.md`.
+API REST do sistema de atendimento e agendamento da clínica Kenko. Ela atende o painel (Home, Calendário, Dia e Analytics) e o bot de agendamento do Showcase. Este README documenta os endpoints. As regras de negócio completas estão em `docs/escopo/escopo-kenko-v2.md`, e os detalhes do bot em `docs/especificacao/kenko-bot-api.md`.
 
 > **Status:** contrato de referência. A implementação está em andamento e este documento descreve o comportamento esperado.
 
@@ -678,6 +678,6 @@ Completa não significa que o paciente compareceu. Não há registro de faltas.
 
 | Documento | Conteúdo |
 |---|---|
-| `escopo-kenko-v2.md` | Regras de negócio, métricas e critérios de aceitação. |
-| `kenko-backend-api.md` | Contratos completos, exemplos de JSON e consultas conceituais de analytics. |
-| `kenko-bot-api.md` | Estado conversacional, validação, idempotência e confirmação transacional do bot. |
+| `docs/escopo/escopo-kenko-v2.md` | Regras de negócio, métricas e critérios de aceitação. |
+| `docs/especificacao/kenko-backend-api.md` | Contratos completos, exemplos de JSON e consultas conceituais de analytics. |
+| `docs/especificacao/kenko-bot-api.md` | Estado conversacional, validação, idempotência e confirmação transacional do bot. |

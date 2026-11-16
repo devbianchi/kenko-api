@@ -8,7 +8,7 @@ Documentos relacionados:
 - [Estratégia de datas](estrategia-de-datas.md): relógio real, janela relativa e envelhecimento
 - [Modelo de dados](../modelo-de-dados/README.md): tabelas que os seeds preenchem
 - [Guia de desenvolvimento local](../desenvolvimento-local/README.md): perfis e configuração
-- [Escopo, seção 8](../../.agents/context/completo/escopo-kenko-v2.md): exigências originais de preparação
+- [Escopo, seção 8](../escopo/escopo-kenko-v2.md): exigências originais de preparação
 
 ## Objetivo
 

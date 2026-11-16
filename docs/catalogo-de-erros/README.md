@@ -48,13 +48,13 @@ Erros de domínio que se referem a um campo específico também podem trazer `fi
 |---|---|---|---|
 | `INVALID_JSON` | Corpo não é JSON válido ou não corresponde ao esquema. | nenhum | Corrigir a requisição. Não repetir sem alterar. |
 | `MISSING_PARAMETER` | Parâmetro obrigatório ausente (`month`, `startDate`, `endDateExclusive`, `period`, `reference`, `ids`). | `{nome}: "Obrigatório."` | Informar o parâmetro. |
-| `INVALID_DATE` | Data fora do formato `YYYY-MM-DD` ou data inexistente (ex.: 2026-02-30). | `{campo}: "Formato inválido."` | Corrigir o formato. |
-| `INVALID_MONTH` | `month` fora do formato `YYYY-MM` ou mês inválido. | `{campo}: "Formato inválido."` | Corrigir o formato. |
+| `INVALID_DATE` | Data fora do formato `YYYY-MM-DD` ou data inexistente (ex.: 2026-02-30). Intervalo invertido é `INVALID_DATE_RANGE`, não este código. | `{campo}: "Formato inválido."` | Corrigir o formato. |
+| `INVALID_MONTH` | `month` fora do formato `YYYY-MM` ou mês inválido. Usado só no Dashboard. | `{campo}: "Formato inválido."` | Corrigir o formato. |
 | `INVALID_DATE_RANGE` | `endDateExclusive` não é posterior a `startDate`. | `endDateExclusive: "Deve ser posterior a startDate."` | Corrigir o intervalo. |
-| `INVALID_PERIOD` | `period` fora de `week`, `month`, `year`, ou `reference` incompatível com o período. | `{campo}: "..."` | Corrigir o período ou a referência. |
+| `INVALID_PERIOD` | `period` fora de `week`, `month`, `year`, ou `reference` incompatível com o período. Usado só em Analytics. | `{campo}: "..."` | Corrigir o período ou a referência. |
 | `FUTURE_PERIOD` | Referência de período posterior ao dia (`week`), ao mês (`month`) ou ao ano (`year`) atual, em Analytics. | `reference: "Período futuro não permitido."` | Escolher um período já iniciado. |
 | `INVALID_IDS` | `ids` com mais de 50 itens, vazio ou com formato inválido. | `ids: "..."` | Dividir a lista ou corrigir o formato. |
-| `INVALID_NAME` | Nome do paciente vazio ou acima do limite de caracteres. | `patient.name: "..."` | Solicitar o nome novamente. |
+| `INVALID_NAME` | Nome do paciente vazio ou com mais de 100 caracteres, após remover espaços nas extremidades. | `patient.name: "..."` | Solicitar o nome novamente. |
 | `INVALID_BIRTH_DATE` | Data de nascimento futura ou inexistente. | `patient.birthDate: "..."` | Solicitar a data novamente. |
 | `INVALID_INPUT_TYPE` | `input.type` desconhecido ou campos do tipo ausentes. | `input: "..."` | Corrigir a requisição. |
 
@@ -108,6 +108,18 @@ Um erro de servidor não deve deixar a conversa em estado parcial: a transação
 | `INVALID_*` (400 e 422) | Mostrar o erro no campo indicado em `fields`. |
 | `*_NOT_FOUND` | Remover a referência local e atualizar a lista. |
 | `INTERNAL_ERROR` ou `SERVICE_UNAVAILABLE` | Mostrar mensagem genérica e permitir reenvio com a mesma `actionId`. |
+
+## Precedência de erros
+
+Quando uma requisição tem mais de uma falha, vale a primeira categoria que se aplicar, nesta ordem:
+
+1. **Formato** (400): `INVALID_*`, `MISSING_PARAMETER`, `INVALID_JSON`.
+2. **Existência** (404): conversa, reserva ou clínica inexistentes.
+3. **Idempotência**: reenvio com mesmo `actionId` e mesmo conteúdo devolve o resultado salvo, sem erro. Mesmo `actionId` com conteúdo diferente gera `ACTION_ID_CONFLICT`.
+4. **Revisão** (409): `STALE_CONVERSATION_STATE`.
+5. **Regras de negócio** (409 e 422): conversa encerrada ou abandonada, horário ocupado, reserva não cancelável, opção ou horário inválidos para o passo.
+
+A ordem vem do ADR-0006, que verifica idempotência antes de revisão.
 
 ## Pendências
 

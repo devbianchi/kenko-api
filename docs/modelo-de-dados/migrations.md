@@ -11,7 +11,7 @@ Ordem de execução pelo Flyway. Todas ficam em `src/main/resources/db/migration
 | V3 | `especialidade` | Existente | **Corrigir** | `UNIQUE (id_clinica, nome)` referencia coluna inexistente; a coluna é `nome_especialidade`. A migration falha hoje. |
 | V4 | `medico` | Existente | Manter | Sem alteração. |
 | V5 | `sala` | Existente | Manter | Sem alteração. |
-| V6 | `horario` | Existente | Manter | A proteção contra dupla reserva fica em `reserva` (V18), não aqui. |
+| V6 | `horario` | Existente | Manter | A proteção contra dupla reserva fica em `reserva` (V16), não aqui. |
 | V7 | `passo_roteiro` | Existente | **Corrigir** | `CHECK` de `etapa` não inclui os passos do bot. Ver nota abaixo. |
 | V8 | `opcao_roteiro` | Existente | **Ajustar** | Acrescentar `id_especialidade` (nullable) e `CHECK` no campo `acao`. |
 | V9 | `conversa` | Existente | **Ajustar** | Acrescentar `id_paciente`, `id_tentativa_atual`, `ultima_interacao` e índices. Ver dicionário. |
@@ -27,20 +27,20 @@ Ordem de execução pelo Flyway. Todas ficam em `src/main/resources/db/migration
 
 ## Nota sobre V7 (etapas do roteiro)
 
-O bot usa mais passos que o `CHECK` atual aceita. A lista proposta, a confirmar (P3), é:
+O bot usa mais passos que o `CHECK` atual aceita. Lista definida na V7 (P3, decidido), com nomes em inglês, iguais aos do funil e dos términos:
 
 | Etapa | Passos técnicos que a usam |
 |---|---|
 | `menu` | menu |
-| `triagem` | specialty, visit_kind |
-| `escolha_horario` | slot_selection, continue_after_no_slots |
-| `dados_paciente` | patient_data |
-| `confirmacao` | confirmation |
-| `consulta_reservas` | appointments |
-| `informacoes` | clinic_information |
-| `encerrada` | closed |
+| `triage` | specialty, visit_kind |
+| `slot_selection` | slot_selection, continue_after_no_slots |
+| `patient_data` | patient_data |
+| `confirmation` | confirmation |
+| `appointments` | appointments |
+| `clinic_information` | clinic_information |
+| `closed` | closed |
 
-A coluna `etapa` guarda a etapa analítica (as cinco barras do funil mais menu, reservas, informações e encerrada). O nome técnico do passo fica em uma coluna separada, `codigo_passo`, para que o backend mapeie a ação sem depender do texto. A correção de V7 inclui essa coluna.
+A coluna `etapa` guarda a etapa analítica (as barras do funil, mais menu, consultas, informações e encerrada). O nome técnico do passo fica em uma coluna separada, `codigo_passo`, para que o backend mapeie a ação sem depender do texto. A correção de V7 inclui essa coluna.
 
 ## Ordem de criação dentro das migrations
 

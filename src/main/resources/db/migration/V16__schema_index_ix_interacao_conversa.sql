@@ -1,0 +1,1 @@
+CREATE INDEX ix_interacao_conversa  ON interacao (id_conversa, instante);

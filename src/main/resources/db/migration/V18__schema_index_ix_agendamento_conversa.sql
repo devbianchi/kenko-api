@@ -1,0 +1,1 @@
+CREATE INDEX ix_agendamento_conversa ON agendamento (id_conversa);

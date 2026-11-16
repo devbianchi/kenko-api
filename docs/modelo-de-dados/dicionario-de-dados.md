@@ -87,7 +87,7 @@ Sugestão de índices (V17): `(id_medico, inicio)` e `(id_sala, inicio)`.
 | `id_passo_destino` | INT | nullable, FK `passo_roteiro` | Passo seguinte. Nulo quando a ação encerra ou volta ao menu. |
 | `id_especialidade` | INT | nullable, FK `especialidade` | **Nova.** Preenchida apenas nas opções de especialidade. |
 | `rotulo` | VARCHAR(100) | NOT NULL | |
-| `acao` | VARCHAR(30) | nullable, CHECK | **Ajustada.** Conjunto fechado, pendente em P2. |
+| `acao` | VARCHAR(30) | nullable, CHECK (`schedule`, `clinic_info`, `appointments`, `select_specialty`, `select_visit_kind`, `continue_scheduling`, `go_menu`) | **Ajustada.** Conjunto fechado definido na V8 (P2). |
 
 ## Conversas (V9, ajustada, e novas)
 
@@ -96,11 +96,11 @@ Sugestão de índices (V17): `(id_medico, inicio)` e `(id_sala, inicio)`.
 | Coluna | Tipo | Restrições | Observação |
 |---|---|---|---|
 | `id_conversa` | INT | PK, identity | |
-| `contato` | VARCHAR(20) | NOT NULL, UNIQUE | Gerado no frontend. Sem telefone real. |
+| `contato` | VARCHAR(64) | NOT NULL, UNIQUE | Gerado no frontend. Sem telefone real. |
 | `id_passo_atual` | INT | NOT NULL, FK `passo_roteiro` | |
-| `id_paciente` | INT | nullable, FK `paciente` | **Nova.** Preenchida na identificação. Exclusiva da conversa. |
-| `id_tentativa_atual` | INT | nullable, FK `tentativa` | **Nova.** Adicionada em V18 por dependência circular. |
-| `inicio` | TIMESTAMPTZ | NOT NULL | Ver pendência P5. |
+| `id_paciente` | INT | nullable, UNIQUE, FK `paciente` (V18) | **Nova.** Preenchida na identificação. Exclusiva da conversa (RN-06). Vínculo único, conforme P6. |
+| `id_tentativa_atual` | INT | nullable, FK `tentativa` (V18) | **Nova.** FK adicionada em V18 por dependência circular. |
+| `inicio` | TIMESTAMPTZ | NOT NULL | Preenchido pela aplicação com o `Clock` (P5). |
 | `ultima_interacao` | TIMESTAMPTZ | NOT NULL | **Nova.** Base do abandono. Atualizada por interação do paciente, nunca por GET. |
 | `revisao` | INT | NOT NULL, DEFAULT 0 | Controle de conflito (ADR-0006). |
 | `encerrada_em` | TIMESTAMPTZ | nullable | |
@@ -116,11 +116,10 @@ Restrição: `CHECK (encerrada_em IS NULL OR encerramento_motivo IS NOT NULL)`.
 | Coluna | Tipo | Restrições | Observação |
 |---|---|---|---|
 | `id_paciente` | INT | PK, identity | |
-| `id_conversa` | INT | NOT NULL, UNIQUE, FK `conversa` | Paciente pertence a exatamente uma conversa (RN-06). |
 | `nome` | VARCHAR(100) | NOT NULL | Não único. |
 | `data_nascimento` | DATE | NOT NULL | Não pode ser futura (validado na aplicação). |
 
-Nota: `id_conversa` UNIQUE garante a exclusividade. Como `conversa.id_paciente` também existe, a consistência entre os dois lados é garantida pela transação de identificação. Ver P6 se a redundância for considerada desnecessária.
+Nota: o vínculo com a conversa fica só em `conversa.id_paciente` (P6, decidido). Não há `id_conversa` em `paciente`.
 
 ### tentativa (V11, nova)
 
@@ -232,6 +231,8 @@ Status (completa, pendente, cancelada) é derivado: cancelada se `cancelada_em` 
 
 | # | Pendência | Observação |
 |---|---|---|
-| P6 | `paciente.id_conversa` e `conversa.id_paciente` representam o mesmo vínculo nos dois sentidos. | Manter uma das duas. Recomendo manter `conversa.id_paciente` e remover `paciente.id_conversa`, deixando o UNIQUE em `conversa.id_paciente`. Decidir antes de V10. |
+| P6 | `paciente.id_conversa` e `conversa.id_paciente` representam o mesmo vínculo nos dois sentidos. | **Decidido:** mantém-se só `conversa.id_paciente` (UNIQUE). `paciente.id_conversa` foi removido da V10. |
 | P7 | `horario` não tem coluna de duração; o fim é explícito. | Confirmado pelo escopo (RN-13). Sem ação. |
-| P8 | Tipo de `id` em `interacao`, `evento_conversa` e `acao_processada` é BIGINT. Os demais são INT. | Padronizar em INT ou manter BIGINT nas tabelas de alto volume. Decisão da equipe. |
+| P8 | Tipo de `id` em `interacao`, `evento_conversa` e `acao_processada` é BIGINT. Os demais são INT. | Pendente de decisão da equipe. |
+
+Pendências já decididas nesta fase: P1 (V1 a V9 nunca aplicadas, então as correções editam os arquivos), P2 (conjunto fechado de `acao` na V8), P3 (etapas em inglês na V7, com `appointments`, `clinic_information` e `closed`) e P5 (`inicio` preenchido pela aplicação com o `Clock`).

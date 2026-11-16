@@ -37,7 +37,7 @@ API REST do sistema de atendimento e agendamento da clínica Kenko. Ela atende o
 **Nomes e tipos**
 
 - Campos em `camelCase`.
-- Identificadores são opacos (`cv_1`, `slot_501`). O cliente não deve depender do formato.
+- Identificadores são opacos (`cv_1`, `slot_501`). O cliente não deve depender do formato. Na API, o prefixo indica o tipo e o número é a chave interna da tabela (`cv_1` = `id_conversa` 1; `slot_501` = `id_horario` 501).
 - Datas: `YYYY-MM-DD`. Meses: `YYYY-MM`. Instantes: ISO 8601 com deslocamento (`2026-11-11T09:00:00-03:00`).
 - Durações: números inteiros em segundos.
 - Percentuais: escala 0–100.
@@ -315,7 +315,7 @@ Retorna os KPIs, o funil, os términos, o histograma de duração, o mapa de cal
 
 | `period` | `reference` | Período resolvido |
 |---|---|---|
-| `week` | `YYYY-MM-DD` | Sete dias terminando na data informada. |
+| `week` | `YYYY-MM-DD` | Sete dias terminando na data informada. Data posterior a hoje retorna `FUTURE_PERIOD`. |
 | `month` | `YYYY-MM` | Mês informado, em blocos de dias para a série. |
 | `year` | `YYYY` | Ano corrente: janeiro até o mês atual. Anos anteriores: doze meses. Ano futuro não é permitido. |
 

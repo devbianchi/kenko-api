@@ -1,6 +1,6 @@
 # Migrations
 
-Ordem de execução pelo Flyway. Todas ficam em `src/main/resources/db/migration/`.
+Ordem de execução pelo runner de migrations (`npm run db:migrate`, em `src/database/migrate.ts`). Todas ficam em `src/database/migrations/`, e cada versão aplicada é registrada em `schema_migrations`.
 
 **Premissa:** nenhuma migration foi aplicada em ambiente compartilhado (pendência P1). Se alguma já rodou, a coluna "Ação" muda de "editar" para "nova versão" e o item correspondente deve ser revisado.
 

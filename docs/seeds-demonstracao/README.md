@@ -34,17 +34,14 @@ Os dados são **fictícios**, mas as operações que os criaram são reais: cada
 
 ## Como carregar
 
-Com o perfil `demo`, a aplicação executa os scripts da pasta `src/main/resources/demo/` depois do Flyway:
+O comando `npm run db:seed` executa os scripts da pasta `src/database/seeds/`, depois que as migrations estão aplicadas ([ADR-0011](../adr/0011-carga-de-demonstracao-por-script.md)):
 
 ```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
+npm run db:migrate
+npm run db:seed
 ```
 
-Ou com a variável:
-
-```bash
-SPRING_PROFILES_ACTIVE=demo ./mvnw spring-boot:run
-```
+> **Estado atual:** o comando e os scripts ainda não existem. Eles entram na Fase 4, depois da base TypeScript. Até lá, esta documentação descreve o comportamento esperado.
 
 Ordem de execução dos scripts (prefixo numérico):
 
@@ -71,10 +68,11 @@ Para reconstruir a demonstração do zero:
 ```bash
 docker compose down -v
 docker compose up -d db
-SPRING_PROFILES_ACTIVE=demo ./mvnw spring-boot:run
+npm run db:migrate
+npm run db:seed
 ```
 
-Para recarregar apenas os seeds, sem apagar o banco, basta reiniciar a aplicação com o perfil `demo`. O script remove e recria os dados de demonstração.
+Para recarregar apenas os seeds, sem apagar o banco, basta rodar `npm run db:seed` de novo. O script remove e recria os dados de demonstração.
 
 ## Quando recarregar
 
@@ -89,7 +87,7 @@ Para recarregar apenas os seeds, sem apagar o banco, basta reiniciar a aplicaç�
 
 - Os seeds não cobrem todas as combinações possíveis. Cobrem o necessário para a apresentação dos indicadores.
 - Os volumes são suficientes para mediana, P90 e histograma com amostras. Não são uma carga de desempenho.
-- O perfil `demo` não deve ser ativado em ambiente com dados reais.
+- O `npm run db:seed` se recusa a rodar em base que não seja a de demonstração (ADR-0011). Mesmo assim, não rode em ambiente com dados reais.
 - Os testes não usam estes seeds. Cada teste cria seu cenário (ver [dados de teste](../estrategia-de-testes/dados-de-teste.md)).
 
 ## Verificação após carregar

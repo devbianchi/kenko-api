@@ -1,6 +1,6 @@
 # Modelo de dados — Kenko API
 
-Descreve o schema PostgreSQL do backend: tabelas, relacionamentos, constraints, índices e a sequência de migrations Flyway.
+Descreve o schema PostgreSQL do backend: tabelas, relacionamentos, constraints, índices e a sequência de migrations SQL aplicadas pelo runner em TypeScript.
 
 Documentos complementares:
 

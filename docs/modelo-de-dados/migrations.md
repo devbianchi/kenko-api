@@ -24,6 +24,7 @@ Ordem de execução pelo runner de migrations (`npm run db:migrate`, em `src/dat
 | V16 | `reserva` | Nova | Criar | Agendamento com índice único parcial (ADR-0007). |
 | V17 | `indices_de_consulta` | Nova | Criar | Índices de performance das métricas, separados para revisão. |
 | V18 | `ajustes_fk_e_checks` | Nova | Criar | Chaves estrangeiras cruzadas que dependem de tabelas criadas depois (ex.: `conversa.id_tentativa_atual`). |
+| V19 | `dados_roteiro_bot` | Dados | Criar | Passos e opções fixos do roteiro do bot (ADR-0009), com `codigo_opcao` estável por passo. |
 
 ## Nota sobre V7 (etapas do roteiro)
 

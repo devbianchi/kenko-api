@@ -43,7 +43,7 @@ afterAll(async () => {
 
 Regras de uso:
 
-- Cada suíte de integração sobe o próprio container e aplica as 18 migrations antes do primeiro teste.
+- Cada suíte de integração sobe o próprio container e aplica todas as migrations antes do primeiro teste.
 - Cada teste prepara o que precisa e não depende do que outro teste deixou no banco.
 - Limpeza após cada teste: `TRUNCATE` das tabelas tocadas, com `RESTART IDENTITY CASCADE`. Testes de repositório e de serviço podem usar uma transação com `ROLLBACK` no lugar, desde que todo o fluxo rode na mesma conexão.
 - Testes de concorrência usam conexões independentes do pool, porque cada uma precisa de uma transação própria.

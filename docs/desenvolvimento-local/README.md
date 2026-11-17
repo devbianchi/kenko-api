@@ -9,7 +9,7 @@ Documentos relacionados:
 - [Modelo de dados](../modelo-de-dados/README.md): schema e migrations
 - [ADRs](../adr/README.md): decisões de arquitetura
 
-> **Estado atual:** a base da aplicação está pronta. A API sobe, `GET /health` responde, `GET /api/clinic` responde 404 até a clínica ser cadastrada, e as migrations V1 a V18 são aplicadas pelo runner. Os endpoints do bot e do painel entram nas próximas fases.
+> **Estado atual:** a base da aplicação está pronta. A API sobe, `GET /health` responde, `GET /api/clinic` responde 404 até a clínica ser cadastrada, e as migrations V1 a V19 são aplicadas pelo runner. Os endpoints do bot e do painel entram nas próximas fases.
 
 ## Pré-requisitos
 
@@ -38,7 +38,7 @@ npm run dev
 
 - `npm ci` instala as dependências exatamente como estão no `package-lock.json`.
 - `cp .env.example .env` cria a configuração local. Ela aponta para o banco do `compose.yaml`.
-- `npm run db:migrate` aplica as 18 migrations. Rodar de novo não faz nada se não houver pendências.
+- `npm run db:migrate` aplica as migrations de V1 a V19. Rodar de novo não faz nada se não houver pendências.
 - `npm run dev` sobe a API em `http://localhost:8080` com recarga automática.
 
 Confirmar que está no ar:

@@ -1,6 +1,6 @@
 # ADR-0002: Acesso a dados com Spring JDBC (`JdbcClient`)
 
-**Status:** Aceita
+**Status:** Substituída por ADR-0010
 **Data:** 2026-11-14
 
 ## Contexto

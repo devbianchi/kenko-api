@@ -1,1 +1,0 @@
-CREATE INDEX ix_evento_conversa     ON evento (id_conversa, tipo);

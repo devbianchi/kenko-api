@@ -1,81 +1,56 @@
-# Configuração e perfis
+# Configuração
 
-A configuração fica em `src/main/resources/application.properties` e em arquivos por perfil. Credenciais nunca são versionadas: vêm de variáveis de ambiente.
+A configuração vem de variáveis de ambiente. Elas são lidas e validadas uma vez, na inicialização, por `src/config/env.ts` (Zod). Se uma variável obrigatória faltar ou for inválida, a aplicação não sobe e a mensagem diz qual é o problema.
 
-## Propriedades principais
+Credenciais nunca são versionadas. O arquivo `.env.example` mostra as chaves, sem valores reais.
 
-| Propriedade | Padrão | Descrição |
-|---|---|---|
-| `spring.application.name` | `kenko-api` | Já definida. |
-| `server.port` | `8080` | Porta HTTP. |
-| `spring.datasource.url` | `${DB_URL}` | URL JDBC do PostgreSQL. |
-| `spring.datasource.username` | `${DB_USER}` | Usuário do banco. |
-| `spring.datasource.password` | `${DB_PASSWORD}` | Senha. Sem valor padrão. |
-| `spring.flyway.enabled` | `true` | Aplica as migrations na inicialização. |
-| `kenko.timezone` | `America/Sao_Paulo` | Fuso de negócio usado pelo bean `Clock`. |
-| `kenko.cors.allowed-origins` | `http://localhost:5173` | Origem do frontend, separada por vírgula (ver [ADR-0008](../adr/0008-cors-e-origem-do-frontend.md)). |
+## Variáveis
 
-Ao colocar `${DB_PASSWORD}` sem valor padrão, a aplicação falha na inicialização se a variável não existir. Isso é intencional: evita subir com credencial vazia.
+| Variável | Obrigatória | Padrão | Descrição |
+|---|---|---|---|
+| `DATABASE_URL` | sim | nenhum | URL de conexão do PostgreSQL, por exemplo `postgresql://kenko:kenko@localhost:5432/kenko`. |
+| `PORT` | não | `8080` | Porta HTTP. |
+| `CORS_ALLOWED_ORIGINS` | não | `http://localhost:5173` | Origens do frontend, separadas por vírgula ([ADR-0008](../adr/0008-cors-e-origem-do-frontend.md)). |
+| `NODE_ENV` | não | `development` | `development`, `test` ou `production`. |
 
-## Variáveis de ambiente
+Não há valor padrão para `DATABASE_URL`. Se ela estiver ausente, a aplicação falha com `Configuração inválida: DATABASE_URL: ...`. Isso é intencional: evita subir apontando para um banco inesperado.
 
-| Variável | Obrigatória | Exemplo (dev) |
-|---|---|---|
-| `DB_URL` | sim | `jdbc:postgresql://localhost:5432/kenko` |
-| `DB_USER` | sim | `kenko` |
-| `DB_PASSWORD` | sim | `kenko` |
-| `SERVER_PORT` | não | `8080` |
-| `SPRING_PROFILES_ACTIVE` | não | `dev` |
+## Como definir
+
+**Arquivo `.env` na raiz (recomendado para desenvolvimento):**
+
+```bash
+cp .env.example .env
+```
+
+O `.env` é carregado automaticamente pelo `dotenv`, que roda na primeira linha de `src/config/env.ts`. Ele já está no `.gitignore`.
+
+**Linux/macOS, sessão atual:**
+
+```bash
+export DATABASE_URL=postgresql://kenko:kenko@localhost:5432/kenko
+```
+
+**Windows PowerShell, sessão atual:**
+
+```powershell
+$env:DATABASE_URL = "postgresql://kenko:kenko@localhost:5432/kenko"
+```
 
 Os valores de desenvolvimento estão no `compose.yaml`, descrito em [banco-local.md](banco-local.md). Não reutilize essas credenciais em nenhum outro ambiente.
 
-### Como definir
-
-**Linux/macOS (sessão atual):**
-
-```bash
-export DB_URL=jdbc:postgresql://localhost:5432/kenko
-export DB_USER=kenko
-export DB_PASSWORD=kenko
-```
-
-**Windows PowerShell (sessão atual):**
-
-```powershell
-$env:DB_URL = "jdbc:postgresql://localhost:5432/kenko"
-$env:DB_USER = "kenko"
-$env:DB_PASSWORD = "kenko"
-```
-
-Para não digitar a cada sessão, use um arquivo `.env` local (já ignorado pelo Git) ou as variáveis de usuário do sistema. O arquivo `.env.example` com as chaves, sem valores reais, é versionado.
-
-## Perfis
-
-| Perfil | Uso | Diferenças |
-|---|---|---|
-| (padrão, sem perfil) | Execução local | Usa as variáveis acima. |
-| `dev` | Desenvolvimento com logs de SQL | `spring.jpa.show-sql` não se aplica (não usamos JPA). Ativa `logging.level.org.springframework.jdbc=DEBUG`. |
-| `test` | Testes | Usa o container do Testcontainers. Não carrega a demonstração, pois não ativa `demo`. |
-| `demo` | Apresentação | Carrega os seeds de demonstração após as migrations. É o único controle da carga ([ADR-0009](../adr/0009-carga-de-demonstracao-por-perfil.md)). Ver [documentação de seeds](../seeds-demonstracao/README.md). |
-
-Ativar um perfil:
-
-```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
-```
-
-Ou pela variável `SPRING_PROFILES_ACTIVE=dev`.
-
 ## Fuso horário
 
-A aplicação precisa do fuso `America/Sao_Paulo` nas regras de negócio, independentemente do fuso da máquina (ADR-0005). O bean `Clock` usa essa zona explicitamente.
+As regras de negócio usam `America/Sao_Paulo`, independentemente do fuso da máquina (ADR-0005). A constante `BUSINESS_TIMEZONE` fica em `src/shared/clock.ts`, e não é configurável por variável de ambiente, porque o fuso faz parte da regra de negócio.
 
-Não é necessário alterar o fuso do sistema operacional. Porém, o PostgreSQL deve guardar `TIMESTAMPTZ` em UTC internamente e converter na leitura. Isso já é o comportamento padrão do tipo.
+O tempo nunca é lido diretamente. Toda regra que depende dele recebe um `Clock`, que é uma interface injetada. Em produção usa-se `systemClock`; nos testes, `fixedClock`. Isso mantém os testes independentes do relógio real.
+
+O PostgreSQL guarda `TIMESTAMPTZ` em UTC e converte na leitura. Não é preciso alterar o fuso do sistema operacional.
 
 ## Não versionar
 
 - Senhas e tokens reais.
 - Arquivos `.env` com valores.
-- Diretórios `target/` e `coverage/`.
+- Diretórios `dist/` e `coverage/`.
 
 Verifique o `.gitignore` antes de cada commit que altere a configuração.

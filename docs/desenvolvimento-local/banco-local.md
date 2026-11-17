@@ -1,6 +1,6 @@
 # Banco local
 
-O desenvolvimento usa PostgreSQL em container, definido em `compose.yaml` na raiz do projeto. Os testes usam Testcontainers e não dependem desse container.
+O desenvolvimento usa PostgreSQL em container, definido em `compose.yaml` na raiz do projeto. Os testes de integração usam Testcontainers e não dependem desse container.
 
 ## Subir o banco
 
@@ -15,7 +15,7 @@ docker compose ps
 docker compose logs db --tail 20
 ```
 
-O serviço fica saudável quando o log mostra `database system is ready to accept connections`.
+O serviço está pronto quando o log mostra `database system is ready to accept connections`.
 
 ## Conexão
 
@@ -26,7 +26,7 @@ O serviço fica saudável quando o log mostra `database system is ready to accep
 | Banco | `kenko` |
 | Usuário | `kenko` |
 | Senha | `kenko` |
-| Versão | PostgreSQL 16 (alinhada à ADR-0001) |
+| Versão | PostgreSQL 16 (alinhada à [ADR-0001](../adr/0001-postgresql.md)) |
 
 Cliente de linha de comando:
 
@@ -34,7 +34,7 @@ Cliente de linha de comando:
 docker compose exec db psql -U kenko -d kenko
 ```
 
-Para conectar por DBeaver, pgAdmin ou IntelliJ, use os parâmetros acima.
+Para conectar por DBeaver, pgAdmin ou IntelliJ, use os parâmetros acima. A mesma conexão, em forma de URL, é a `DATABASE_URL` do `.env`.
 
 ## Conteúdo do `compose.yaml`
 
@@ -52,11 +52,6 @@ services:
       - "5432:5432"
     volumes:
       - kenko-db:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U kenko -d kenko"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
 
 volumes:
   kenko-db:
@@ -66,11 +61,12 @@ O volume `kenko-db` mantém os dados entre reinicializações. A seção seguint
 
 ## Resetar o banco
 
-Remove o volume e recria o container. As migrations são aplicadas de novo na próxima execução da API.
+Remove o volume e recria o container. As migrations são aplicadas de novo com `npm run db:migrate`.
 
 ```bash
 docker compose down -v
 docker compose up -d db
+npm run db:migrate
 ```
 
 Use com cuidado: apaga todos os dados locais, incluindo os seeds de demonstração carregados.
@@ -83,25 +79,33 @@ docker compose exec db psql -U kenko -d kenko -c "\dt"
 
 Após as migrations, devem aparecer as tabelas descritas em [migrations.md](../modelo-de-dados/migrations.md).
 
-Para conferir a histórico do Flyway:
+Para conferir o histórico de migrations aplicadas:
 
 ```bash
-docker compose exec db psql -U kenko -d kenko -c "SELECT version, description, success FROM flyway_schema_history ORDER BY installed_rank;"
+docker compose exec db psql -U kenko -d kenko -c "SELECT version, name, applied_at FROM schema_migrations ORDER BY version;"
 ```
 
-Todas as linhas devem ter `success = t`.
+Devem aparecer as 18 versões, de V1 a V18.
 
 ## Migrations falham
+
+O runner (`src/database/migrate.ts`) aplica cada migration em uma transação. Se uma falhar, nada dela fica aplicado, e a mensagem indica o arquivo:
+
+```text
+Falha ao aplicar V9__schema_table_conversa.sql: <motivo do PostgreSQL>
+```
 
 Mensagens comuns e o que significam:
 
 | Erro | Causa | Solução |
 |---|---|---|
-| `column "nome" referenced in foreign key does not exist` ou `column "nome" ... does not exist` | V3 com a coluna errada (`nome` em vez de `nome_especialidade`). | Aplique a correção descrita em [migrations.md](../modelo-de-dados/migrations.md) antes de subir. |
-| `check constraint ... is violated` | Dados inseridos pelo seed não respeitam o `CHECK` de `passo_roteiro.etapa`. | Revise o seed contra a lista de etapas (pendência P3). |
-| `Validate failed: Migration checksum mismatch` | Arquivo de migration alterado depois de aplicado. | Em ambiente local: `docker compose down -v` e subir de novo. Em ambiente compartilhado: nunca edite; crie nova versão. |
-| `relation "flyway_schema_history" already exists` | Banco criado manualmente, sem Flyway. | Resete o volume. |
-| `password authentication failed` | `DB_PASSWORD` diferente da senha do container. | Confira as variáveis de ambiente com o `compose.yaml`. |
+| `Falha ao aplicar V<n>__...` com `already exists` | O banco tem objetos criados fora do runner. | `docker compose down -v`, `docker compose up -d db` e `npm run db:migrate`. |
+| `Falha ao aplicar V<n>__...` com `violates check constraint` | Dados já existentes não respeitam uma restrição nova. Em banco local vazio, isso não ocorre. | Resete o banco local. |
+| `Versão de migration duplicada` | Dois arquivos com o mesmo número `V<n>`. | Renomeie para o próximo número livre. Nunca reutilize um número já aplicado. |
+| `password authentication failed` | `DATABASE_URL` com senha diferente da do container. | Confira o `.env` com o `compose.yaml`. |
+| `ECONNREFUSED` | Container do banco parado. | `docker compose up -d db`. |
+
+Uma migration já aplicada em ambiente compartilhado nunca é editada. A correção vira uma nova versão.
 
 ## Testes e o banco local
 
@@ -109,6 +113,6 @@ Os testes de integração criam o próprio container do PostgreSQL pelo Testcont
 
 - não usam o banco da porta 5432;
 - não alteram os dados do `docker compose`;
-- aplicam as migrations do zero em cada execução da classe de teste.
+- aplicam as migrations do zero em cada suíte.
 
-Se os testes passam e a API falha, o problema costuma estar nos seeds ou na configuração de `DB_URL`, não nas migrations.
+Se os testes passam e a API falha, o problema costuma estar nos seeds ou na `DATABASE_URL`, não nas migrations.

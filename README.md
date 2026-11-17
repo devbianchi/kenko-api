@@ -4,7 +4,7 @@ API REST do sistema de atendimento e agendamento automatizado da clínica Kenko.
 
 Projeto acadêmico, desenvolvido para a disciplina interdisciplinar do segundo semestre do curso de Análise e Desenvolvimento de Sistemas. Os dados da demonstração são fictícios, mas as operações são reais: consultar disponibilidade lê o banco, confirmar cria uma reserva e os indicadores são calculados por queries.
 
-> **Estado atual:** o projeto está na fase de base da aplicação. Hoje existem apenas a classe de inicialização e o teste de carga de contexto. Persistência, migrations e testes de integração entram na Fase 1. Os documentos em `docs/` descrevem o comportamento esperado.
+> **Estado atual:** a base da aplicação está pronta em TypeScript. Existem o endpoint de saúde (`GET /health`), `GET /api/clinic` (responde 404 enquanto a clínica não estiver cadastrada), o runner de migrations e as 18 migrations do modelo de dados. Os endpoints do bot e do painel entram nas próximas fases. Os documentos em `docs/` descrevem o comportamento esperado.
 
 ## Sumário
 
@@ -40,71 +40,94 @@ Projeto acadêmico, desenvolvido para a disciplina interdisciplinar do segundo s
 
 | Área | Tecnologia |
 |---|---|
-| Linguagem | Java 25 |
-| Framework | Spring Boot 4.1.1 |
-| Build | Maven, via wrapper (`./mvnw`, Maven 3.9.16) |
+| Linguagem | TypeScript em modo estrito |
+| Runtime | Node.js 24 (ver `.nvmrc`) |
+| Framework HTTP | Express 5 |
+| Validação | Zod 4 |
 | Banco de dados | PostgreSQL 16 |
-| Acesso a dados | Spring JDBC com `JdbcClient` (ADR-0002) |
-| Migrations | Flyway |
-| Testes | JUnit 5, AssertJ, Mockito, Spring MockMvc, Testcontainers |
+| Acesso a dados | `pg`, com SQL parametrizado escrito à mão (sem ORM) |
+| Migrations | Runner próprio em TypeScript, sobre arquivos `V<n>__*.sql` |
+| Testes | Vitest, supertest e Testcontainers (PostgreSQL real) |
+| Qualidade | ESLint, Prettier e `tsc --noEmit` |
+
+As decisões estão nos ADRs: [ADR-0010](docs/adr/0010-backend-typescript.md) (backend em TypeScript) e [ADR-0001](docs/adr/0001-postgresql.md) (PostgreSQL).
 
 ## Estrutura do repositório
 
 ```text
 kenko-api/
-  docs/                 documentação técnica: ADRs, modelo de dados, endpoints, testes, seeds
-  src/main/java/        código da aplicação, organizado por feature (ADR-0004)
-  src/main/resources/
-    application.properties
-    db/migration/       migrations Flyway (V1 a V9 nesta etapa)
-  src/test/java/        testes unitários e de integração
-  mvnw, mvnw.cmd        Maven wrapper
-  pom.xml
+  docs/                  documentação técnica: ADRs, modelo de dados, endpoints, testes, seeds
+  src/
+    app.ts               monta o Express: CORS, JSON, /health, /api e erros
+    server.ts            inicializa a aplicação e escuta a porta configurada
+    config/              variáveis de ambiente validadas com Zod e pool do pg
+    controllers/         adaptam HTTP ao serviço e respondem com o envelope
+    database/
+      migrate.ts         aplica as migrations pendentes e registra em schema_migrations
+      migrations/        V1 a V18, modelo de dados em SQL
+    errors/              AppError e catálogo de códigos com status HTTP
+    middlewares/         tratamento central de erros
+    models/              tipos dos dados como estão no banco
+    repositories/        única camada que fala com o banco
+    routes/              URLs e métodos HTTP
+    services/            regras de negócio, sem HTTP nem SQL
+    shared/              relógio com fuso de negócio, identificadores opacos e envelope
+  tests/
+    unit/                regras puras, sem banco
+    integration/         API com PostgreSQL real pelo Testcontainers
+    support/             helpers compartilhados pelos testes
+  compose.yaml           PostgreSQL 16 para desenvolvimento local
+  package.json, tsconfig*.json, vitest.config.mts, eslint.config.mjs
 ```
 
-As features seguem os pacotes previstos no ADR-0004 sob `com.kenko.kenko_api`: `calendar`, `dashboard`, `analytics`, `conversation` e `scheduling`, além de `shared` e `support` nos testes.
+Cada camada só conversa com a imediatamente abaixo: rotas → controller → serviço → repositório → banco. O guia completo da arquitetura está no ADR-0010.
 
 ## Como começar
 
-Pré-requisitos: JDK 25 e Docker. Não é preciso instalar Maven nem PostgreSQL localmente; o wrapper baixa o Maven e os testes sobem seu próprio banco.
+Pré-requisitos: Node.js 24 e Docker. Não é preciso instalar PostgreSQL localmente: o banco de desenvolvimento roda em container, e os testes sobem o próprio.
 
 ```bash
 git clone https://github.com/devbianchi/kenko-api.git
 cd kenko-api
-./mvnw -v
+npm ci
+cp .env.example .env
+docker compose up -d db
+npm run db:migrate
+npm run dev
 ```
 
-No Windows, use `mvnw.cmd` no lugar de `./mvnw`.
-
-Para subir a aplicação:
+A API sobe em `http://localhost:8080`. Para confirmar:
 
 ```bash
-./mvnw spring-boot:run
+curl http://localhost:8080/health
+curl http://localhost:8080/api/clinic   # 404 CLINIC_NOT_FOUND até a clínica ser cadastrada
 ```
 
-A API sobe em `http://localhost:8080`. Nesta etapa ela ainda não expõe rotas, então `GET /api/clinic` responde 404, o que é esperado até a Fase 1.
-
-Quando a Fase 1 estiver concluída, o banco local e o perfil de demonstração passam a funcionar. O guia completo está em [Desenvolvimento local](docs/desenvolvimento-local/README.md).
+O guia completo está em [Desenvolvimento local](docs/desenvolvimento-local/README.md).
 
 ## Comandos
 
 | Tarefa | Comando |
 |---|---|
-| Compilar | `./mvnw clean compile` |
-| Rodar a aplicação | `./mvnw spring-boot:run` |
-| Rodar todos os testes | `./mvnw test` |
-| Rodar uma classe de teste | `./mvnw test -Dtest=NomeDaClasseTest` |
-| Gerar o pacote | `./mvnw clean package` |
-| Build completo com cobertura | `./mvnw verify` (relatório JaCoCo em `target/site/jacoco`, após a Fase 1) |
-
-Após a Fase 1, os testes de integração usam Testcontainers e exigem Docker em execução.
+| Instalar dependências | `npm ci` |
+| Rodar a API com recarga | `npm run dev` |
+| Compilar para `dist/` | `npm run build` |
+| Rodar a versão compilada | `npm start` |
+| Aplicar migrations pendentes | `npm run db:migrate` |
+| Checar tipos | `npm run typecheck` |
+| Lint | `npm run lint` |
+| Formatar | `npm run format` |
+| Todos os testes | `npm test` |
+| Só unitários | `npm run test:unit` |
+| Só integração (exige Docker) | `npm run test:integration` |
+| Cobertura | `npm run test:coverage` |
 
 ## Documentação
 
 | Documento | Conteúdo |
 |---|---|
 | [Desenvolvimento local](docs/desenvolvimento-local/README.md) | Pré-requisitos, primeira execução, comandos do dia a dia e problemas comuns |
-| [Configuração e perfis](docs/desenvolvimento-local/configuracao.md) | Variáveis de ambiente, propriedades e perfis `dev`, `test` e `demo` |
+| [Configuração](docs/desenvolvimento-local/configuracao.md) | Variáveis de ambiente e o fuso de negócio |
 | [Banco local](docs/desenvolvimento-local/banco-local.md) | PostgreSQL em container, reset e verificação das migrations |
 | [Modelo de dados](docs/modelo-de-dados/README.md) | Tabelas, constraints, índices e sequência de migrations |
 | [Endpoints](docs/endpoint/README.md) | Contratos REST, formatos JSON, erros e interações do bot |
@@ -114,7 +137,7 @@ Após a Fase 1, os testes de integração usam Testcontainers e exigem Docker em
 | [Seeds de demonstração](docs/seeds-demonstracao/README.md) | Dados fictícios para o painel e o bot, e a estratégia de datas |
 | [ADRs](docs/adr/README.md) | Decisões de arquitetura registradas, da escolha do PostgreSQL à proteção contra dupla reserva |
 
-Os requisitos funcionais, as regras de negócio e as métricas estão no escopo consolidado do projeto, mantido fora deste repositório.
+Os requisitos funcionais, as regras de negócio e as métricas estão no escopo consolidado do projeto, em [docs/escopo](docs/escopo/escopo-kenko-v2.md).
 
 ## Convenções
 
@@ -128,8 +151,8 @@ Os requisitos funcionais, as regras de negócio e as métricas estão no escopo 
 **Código e testes**
 
 - Regras puras são testadas sem banco; garantias do banco (dupla reserva, idempotência, revisão) são provadas em PostgreSQL real.
-- Nenhum teste depende do relógio real. Usa-se `Clock` fixo.
-- Nomes de métodos de teste seguem `acao_resultado_quando_condicao`, por exemplo `rejeita_segunda_reserva_do_mesmo_horario`.
+- Nenhum teste depende do relógio real. Usa-se um `Clock` fixo, injetado (`src/shared/clock.ts`).
+- Nomes de testes descrevem o comportamento, no padrão `acao_resultado_quando_condicao`, por exemplo `rejeita_segunda_reserva_do_mesmo_horario`.
 - Migrations já aplicadas não são editadas; uma correção vira nova versão.
 
 **Commits**

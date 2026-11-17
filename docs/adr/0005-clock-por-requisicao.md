@@ -1,6 +1,6 @@
 # ADR-0005: Instante de avaliação único por requisição
 
-**Status:** Aceita
+**Status:** Parcialmente substituída por ADR-0010
 **Data:** 2026-11-14
 
 ## Contexto

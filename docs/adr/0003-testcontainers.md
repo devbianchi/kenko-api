@@ -1,6 +1,6 @@
 # ADR-0003: Testes de integração com Testcontainers
 
-**Status:** Aceita
+**Status:** Parcialmente substituída por ADR-0010
 **Data:** 2026-11-14
 
 ## Contexto

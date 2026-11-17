@@ -1,6 +1,6 @@
 # ADR-0004: Organização do código por feature
 
-**Status:** Aceita
+**Status:** Substituída por ADR-0010
 **Data:** 2026-11-14
 
 ## Contexto

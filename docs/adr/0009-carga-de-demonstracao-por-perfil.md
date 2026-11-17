@@ -1,6 +1,6 @@
 # ADR-0009: Carga de dados de demonstração controlada pelo perfil `demo`
 
-**Status:** Aceita
+**Status:** Parcialmente substituída por ADR-0011
 **Data:** 2026-11-16
 
 ## Contexto

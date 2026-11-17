@@ -22,12 +22,12 @@ Documentos relacionados:
 
 | Nível | O que cobre | Banco | Ferramentas | Execução típica |
 |---|---|---|---|---|
-| Unitário | Regras puras: status, mediana, P90, histograma, semana domingo–sábado, validação de entrada, classificação de expediente | Não | JUnit 5, AssertJ | Segundos |
-| Integração de repositório | SQL das queries, constraints, índices parciais, transações | PostgreSQL via Testcontainers | Spring Boot Test, JdbcClient | Dezenas de segundos |
-| Integração de serviço | Fluxo completo de uma ação: revisão, idempotência, confirmação transacional | PostgreSQL via Testcontainers | Spring Boot Test | Dezenas de segundos |
-| Concorrência | Duas conversas disputando o mesmo horário; mesma `actionId` em paralelo | PostgreSQL via Testcontainers | Threads ou `ExecutorService`, latch de início | Segundos |
-| HTTP (contrato) | Status codes, envelope de erro, formato JSON, validação de parâmetros | Opcional (pode usar serviço simulado) | Spring MockMvc | Segundos |
-| Migrations | Aplicação do zero, ordem, `flyway_schema_history` sem falhas | PostgreSQL via Testcontainers | Flyway + Spring Boot Test | Dezenas de segundos |
+| Unitário | Regras puras: status, mediana, P90, histograma, semana domingo–sábado, validação de entrada, classificação de expediente | Não | Vitest (`expect`) | Segundos |
+| Integração de repositório | SQL das queries, constraints, índices parciais, transações | PostgreSQL via Testcontainers | Vitest, `pg` | Dezenas de segundos |
+| Integração de serviço | Fluxo completo de uma ação: revisão, idempotência, confirmação transacional | PostgreSQL via Testcontainers | Vitest, `pg` | Dezenas de segundos |
+| Concorrência | Duas conversas disputando o mesmo horário; mesma `actionId` em paralelo | PostgreSQL via Testcontainers | `Promise.all` com conexões independentes do pool | Segundos |
+| HTTP (contrato) | Status codes, envelope de erro, formato JSON, validação de parâmetros | Opcional (pode usar serviço simulado) | supertest sobre `buildApp` | Segundos |
+| Migrations | Aplicação do zero, ordem, `schema_migrations` com todas as versões | PostgreSQL via Testcontainers | `migrate()` de `src/database/migrate.ts` | Dezenas de segundos |
 
 Ponto de atenção: testes de HTTP que dependem do banco entram na integração. Os que usam serviço simulado ficam no nível HTTP. As duas abordagens não devem ser misturadas na mesma classe.
 
@@ -35,38 +35,33 @@ Ponto de atenção: testes de HTTP que dependem do banco entram na integração.
 
 | Ferramenta | Papel |
 |---|---|
-| JUnit 5 | Runner e anotações. Vem com `spring-boot-starter-test`. |
-| AssertJ | Asserções legíveis. Vem com `spring-boot-starter-test`. |
-| Mockito | Simulação de dependências em testes unitários de serviço. Vem com `spring-boot-starter-test`. |
-| Spring Boot Test | Contexto da aplicação em testes de integração. |
-| MockMvc | Testes de contrato HTTP sem subir servidor. |
-| Testcontainers (PostgreSQL) | Banco real descartável por execução. |
-| Flyway | Aplicação das migrations nos testes, igual ao ambiente real. |
+| Vitest | Runner, asserções (`expect`) e simulações (`vi.fn`). Cobertura com `@vitest/coverage-v8`. |
+| supertest | Testes de contrato HTTP sobre a aplicação montada por `buildApp`, sem subir servidor. |
+| `@testcontainers/postgresql` | Banco real descartável por execução. Ver `tests/support/postgres.ts`. |
+| `migrate()` | Aplicação das migrations nos testes, igual ao ambiente real. |
 
-Não usar H2, MSW, ferramentas de E2E nem bibliotecas de property-based testing nesta etapa. A introdução de outra ferramenta exige atualizar este documento e o ADR correspondente.
+Não usar banco em memória, MSW, ferramentas de E2E nem bibliotecas de property-based testing nesta etapa. A introdução de outra ferramenta exige atualizar este documento e o ADR correspondente.
 
 ## Organização
 
-Pacote de teste espelha o de produção, dentro de `src/test/java/com/kenko/kenko_api/`:
+Os testes ficam em `tests/`, separados por nível:
 
 ```
-src/test/java/com/kenko/kenko_api/
-  shared/                       Clock fixo, utilitários de teste compartilhados
-  support/                     Base de integração com PostgreSQL e helpers de cenário
-  calendar/
-  dashboard/
-  analytics/
-  conversation/
-  scheduling/
+tests/
+  unit/                  regras puras, sem banco; *.test.ts
+  integration/           PostgreSQL real; *.it.test.ts
+  support/               base com PostgreSQL e helpers de cenário
 ```
+
+Quando uma feature tiver regras próprias, o teste unitário fica em `tests/unit/` com o nome da feature (por exemplo `tests/unit/calendar/`).
 
 Convenções:
 
-- Teste unitário: `NomeDaClasseTest`.
-- Teste de integração: `NomeDaClasseIT`, executado pela mesma suíte, separado por tag `integration`.
-- Teste de concorrência: `NomeDaClasseConcorrenciaIT`.
-- Nome do método descreve o comportamento: `rejeita_segunda_reserva_do_mesmo_horario`, no padrão `acao_resultado_quando_condicao`.
-- Uma regra por teste. Cenários com vários passos usam `@Nested` para agrupar.
+- Teste unitário: `nome-do-modulo.test.ts`, em `tests/unit/`.
+- Teste de integração: `nome-do-modulo.it.test.ts`, em `tests/integration/`.
+- Teste de concorrência: `nome-do-modulo.concurrency.it.test.ts`, em `tests/integration/`.
+- Nome do teste descreve o comportamento, no padrão `acao_resultado_quando_condicao`, por exemplo `rejeita_segunda_reserva_do_mesmo_horario`.
+- Uma regra por teste. Cenários com vários passos usam `describe` aninhado para agrupar.
 
 ## Obrigatórios
 
@@ -104,25 +99,25 @@ Estes casos precisam existir antes de a funcionalidade ser considerada pronta:
 
 **Migrations**
 - Aplicação do zero sem erro.
-- Todas as linhas de `flyway_schema_history` com `success = true`.
+- `schema_migrations` com as 18 versões, de V1 a V18, sem falhas.
 - Constraints de `UNIQUE` e `CHECK` impedem dados inválidos (teste por caso de violação).
 
 ## Cobertura
 
-Não há percentual mínimo nesta etapa. A cobertura é medida com JaCoCo e serve para localizar código sem teste, não como critério de aceite. Um método sem teste das regras acima é motivo de revisão, mesmo com cobertura alta.
+Não há percentual mínimo nesta etapa. A cobertura é medida com `@vitest/coverage-v8` e serve para localizar código sem teste, não como critério de aceite. Um método sem teste das regras acima é motivo de revisão, mesmo com cobertura alta.
 
 ## Comandos
 
 | Tarefa | Comando |
 |---|---|
-| Todos os testes | `./mvnw test` |
-| Só unitários | `./mvnw test -Dgroups=unit` |
-| Só integração | `./mvnw test -Dgroups=integration` |
-| Uma classe | `./mvnw test -Dtest=ConversaInteracaoServiceIT` |
-| Concorrência | `./mvnw test -Dtest=*ConcorrenciaIT` |
-| Cobertura | `./mvnw verify` (gera relatório JaCoCo em `target/site/jacoco`) |
+| Todos os testes | `npm test` |
+| Só unitários | `npm run test:unit` |
+| Só integração | `npm run test:integration` |
+| Um arquivo | `npx vitest run tests/integration/api.it.test.ts` |
+| Concorrência | `npx vitest run tests/integration/*.concurrency.it.test.ts` |
+| Cobertura | `npm run test:coverage` (relatório em `coverage/`) |
 
-As tags `unit` e `integration` são definidas com `@Tag` do JUnit 5. A configuração de Surefire precisa ler `groups`, o que entra na Fase 1.
+A separação entre unitário e integração é feita pelo diretório (`tests/unit` e `tests/integration`), e não por tags.
 
 ## Critérios de pronto por tarefa
 
@@ -130,13 +125,13 @@ Uma funcionalidade só é considerada pronta quando:
 
 1. Cada regra afetada tem teste no nível indicado em [criterios.md](criterios.md).
 2. Os testes de proteção foram verificados com mutação: o teste falha se a regra for removida.
-3. A suíte completa passa em uma execução limpa (`./mvnw clean verify`).
-4. Não há teste ignorado (`@Disabled`) sem justificativa registrada no próprio arquivo.
+3. A suíte completa passa em uma execução limpa (`npm run typecheck && npm run lint && npm test`).
+4. Não há teste ignorado (`it.skip` ou `describe.skip`) sem justificativa registrada no próprio arquivo.
 5. Nenhum teste depende do relógio real, de ordem de execução ou de dados deixados por outro teste.
 
 ## Verificação de mutação
 
-Para cada teste de proteção, a equipe altera manualmente a regra no código, roda o teste e confirma que ele falha. Depois, desfaz a alteração. A verificação é manual nesta etapa; uma ferramenta automática de mutação (PIT) pode ser avaliada depois.
+Para cada teste de proteção, a equipe altera manualmente a regra no código, roda o teste e confirma que ele falha. Depois, desfaz a alteração. A verificação é manual nesta etapa; uma ferramenta automática de mutação (por exemplo, Stryker) pode ser avaliada depois.
 
 ## Não cobertos aqui
 

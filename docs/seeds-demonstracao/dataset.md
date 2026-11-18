@@ -69,6 +69,14 @@ Os percentuais são referência. A distribuição exata pode variar em uma ou du
 | Home e Dia | Consultas com status completo, pendente e cancelado no mês de referência. Pelo menos um dia com quatro consultas. |
 | Próximas consultas | Pelo menos cinco pendentes com início futuro a partir da data de carga. |
 
+## Decisões da implementação
+
+Os números abaixo foram fixados ao implementar `004-conversas.ts`. Cada uma é uma escolha de dados, e deve ser revista se o dataset mudar:
+
+- **110 conversas, não 120.** As faixas de verificação (iniciadas 80–100, confirmadas 40–55, abandonadas 10–20) são as que valem. Com 120 conversas, a faixa de iniciadas seria ultrapassada.
+- **Confirmar não encerra.** Conforme o escopo (RN-11), quem confirma ou só consulta informações termina com Sair, um minuto depois da última ação. Por isso as 53 confirmações e as 18 consultas de informação geram `EXITED`. Os 17 abandonos são as conversas que pararam sem encerramento explícito.
+- **Mapa de calor com madrugada e noite.** A maior parte das conversas começa entre 08h e 17h. Algumas começam fora do expediente: de madrugada (00h30, 02h30 e 04h30), à noite (19h, 21h e 23h), antes das 07h (06h30), e em sábado à tarde e domingo. Assim todas as faixas de 2h têm inícios.
+
 ## Pacientes
 
 - Um paciente por conversa que confirmou (cerca de 50 pacientes).
@@ -110,8 +118,10 @@ Após carregar, estas consultas devem retornar valores dentro das faixas acima:
 |---|---|
 | Conversas com `STARTED_SCHEDULING` | 80 a 100 |
 | Conversas com `APPOINTMENT_CONFIRMED` | 40 a 55 |
-| Conversas com `EXITED` | 15 a 25 |
-| Conversas abandonadas (última interação há mais de 1h, sem `EXITED`) | 10 a 20 |
+
+| Conversas com `EXITED` (saídas por Sair, incluindo após confirmar ou consultar informações) | 93 |
+| Saídas durante o agendamento (`EXITED` com tentativa `exited` ou `no_slots`) | 16 |
+| Conversas abandonadas (última interação há mais de 1h, sem encerramento explícito) | 10 a 20 |
 | Buscas sem horário | 15 a 25 |
 | Reservas canceladas | 8 a 12 |
 | Consultas completas no mês de referência | pelo menos 5 |

@@ -41,22 +41,24 @@ npm run db:migrate
 npm run db:seed
 ```
 
-> **Estado atual:** o comando e os scripts ainda não existem. Eles entram na Fase 4, depois da base TypeScript. Até lá, esta documentação descreve o comportamento esperado.
+> **Estado atual:** o comando carrega a demonstração completa: cadastros, horários e 110 conversas com seus desfechos. Os volumes e as faixas de verificação estão em [dataset.md](dataset.md).
 
 Ordem de execução dos scripts (prefixo numérico):
 
 | Script | Conteúdo |
 |---|---|
-| `001-clinica.sql` | Clínica, expediente e especialidades. |
-| `002-profissionais.sql` | Médicos e salas. |
-| `003-horarios.sql` | Horários das semanas de demonstração. |
-| `004-conversas.sql` | Conversas, tentativas, interações, eventos, buscas, pacientes e reservas. |
+| `000-limpeza.ts` | Remove a demonstração anterior: conversas `demo_`, cadastros e horários da clínica. |
+| `001-clinica.ts` | Clínica, expediente e especialidades. |
+| `002-profissionais.ts` | Médicos e salas. |
+| `003-horarios.ts` | Horários de 30 minutos no expediente, de 60 dias antes até 14 depois da referência. |
+| `004-conversas.ts` | 110 conversas com tentativas, interações, eventos, buscas sem horário, pacientes e reservas. |
 
 O roteiro (`passo_roteiro` e `opcao_roteiro`) não é carregado pelo seed. Ele vem de uma migration, porque é conteúdo fixo do produto, não dado de demonstração (escopo, RN-03).
 
 ## Regras do script
 
-- **Idempotente:** o início do script remove somente os registros de demonstração, identificados pelo contato com prefixo `demo_` e pelos horários da janela de demonstração. Dados criados por uso real não são apagados.
+- **Idempotente:** o script remove a demonstração anterior antes de recriá-la. A trava garante que a base só tem a clínica de demonstração. Se uma reserva real apontar para um horário da demonstração, a carga falha e não apaga nada.
+- **Trava:** recusa rodar com `NODE_ENV=production` e em base com outra clínica (ADR-0011).
 - **Transacional:** o carregamento inteiro roda em uma transação. Falha em qualquer ponto desfaz tudo.
 - **Sem aleatoriedade:** valores são gerados por índice determinístico (`demo_conversa_001`, `demo_conversa_002`). Duas cargas produzem os mesmos fatos.
 - **Sem horário fixo:** datas e horas são calculadas pela regra da janela relativa.

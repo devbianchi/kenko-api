@@ -83,7 +83,7 @@ Não há horários fora do expediente. Conversas iniciadas fora dele aparecem ap
 | Alguma faixa de status zerada | Carga rodou em fim de semana, sem horários futuros suficientes | Carregar em dia útil. |
 | Próximas consultas vazias logo após carregar | Carga em sexta à tarde; o seed não tem pendentes até a segunda | Aumentar o alcance da janela de pendentes para 21 dias. |
 | Duração sem amostras acima de 10 min | Dataset não tem essas conversas | Acrescentar duas conversas com duração de 11 a 13 minutos. |
-| Mapa de calor sem sábado | Carga executada sem gerar conversas em sábado | Verificar a distribuição no script `004-conversas.sql`. |
+| Mapa de calor sem sábado | Carga executada sem gerar conversas em sábado | Verificar a distribuição no script `004-conversas.ts`. |
 | Erro de `check constraint` ao carregar | Valor de `tipo` ou de `etapa` fora da lista | Conferir contra o [dicionário de dados](../modelo-de-dados/dicionario-de-dados.md). |
 
 Cada falha tem um teste de verificação do dataset (lista em [dataset.md](dataset.md#verificação-do-dataset)). Se o teste falhar, o seed não é considerado pronto para apresentação.

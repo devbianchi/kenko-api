@@ -450,7 +450,8 @@ Cria uma conversa para um contato gerado no frontend. O bot envia automaticament
 
 **Regras**
 
-- Repetir a criação com o mesmo `contactId` (por exemplo, após falha de rede) retorna a conversa existente, sem criar outra nem renovar a atividade.
+- Repetir a criação com o mesmo `contactId` (por exemplo, após falha de rede) retorna a conversa existente, sem criar outra nem renovar a atividade. A resposta é 200, sem mensagens novas. A primeira criação responde 201.
+- `contactId` é obrigatório, com 1 a 64 caracteres. Ausente retorna 400 `MISSING_PARAMETER`; inválido retorna 400 `INVALID_INPUT_TYPE`.
 - Uma nova intenção de iniciar conversa usa um `contactId` novo.
 
 #### `GET /api/conversations`
@@ -480,7 +481,7 @@ GET /api/conversations?ids=cv_1,cv_2
 }
 ```
 
-- `ids` é obrigatório. Sem ele, a resposta é 400.
+- `ids` é obrigatório. Sem ele, a resposta é 400 `MISSING_PARAMETER`. Vazio, malformado ou com mais de 50 IDs retorna 400 `INVALID_IDS`.
 - IDs inexistentes podem ser omitidos.
 - Para mais de 50 IDs, divida a chamada.
 - Não há listagem geral de conversas.

@@ -6,5 +6,6 @@ export function createConversationRouter(controller: ConversationController): Ro
   router.post('/', controller.create);
   router.get('/', controller.list);
   router.get('/:id', controller.get);
+  router.post('/:id/interactions', controller.interact);
   return router;
 }

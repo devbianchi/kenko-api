@@ -11,6 +11,7 @@ import type { ConversationRepository } from '../repositories/conversation.reposi
 import type { RoteiroRepository } from '../repositories/roteiro.repository';
 import type { Clock } from '../shared/clock';
 import { effectiveStatus } from './conversation-status';
+import type { ConversationViewBuilder } from './conversation-view';
 
 /** Estado público da conversa: o que o cliente precisa para reexibir a tela. */
 export interface ConversationState {
@@ -27,12 +28,13 @@ export interface CreateResult {
 
 type Db = Pool | PoolClient;
 
-/** Regras de conversa da fase 5a: criação idempotente e leitura sem efeitos colaterais. */
+/** Regras de conversa: criação idempotente e leitura sem efeitos colaterais. */
 export class ConversationService {
   constructor(
     private readonly pool: Pool,
     private readonly conversations: ConversationRepository,
     private readonly roteiro: RoteiroRepository,
+    private readonly views: ConversationViewBuilder,
     private readonly clock: Clock,
   ) {}
 
@@ -92,17 +94,11 @@ export class ConversationService {
     });
   }
 
-  private async state(record: ConversationRecord, now: Date, db?: Db): Promise<ConversationState> {
+  async state(record: ConversationRecord, now: Date, db?: Db): Promise<ConversationState> {
     return {
       record,
       status: effectiveStatus(record, now),
-      view: await this.viewFor(record.step, db),
+      view: await this.views.build(record.step, db),
     };
-  }
-
-  private async viewFor(step: string, db?: Db): Promise<ConversationView> {
-    if (step === 'closed') return { type: 'closed' };
-    const options = await this.roteiro.findOptions(step, db);
-    return { type: 'options', options };
   }
 }

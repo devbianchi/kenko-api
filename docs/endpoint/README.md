@@ -144,7 +144,7 @@ Sem parâmetros.
 }
 ```
 
-**Regra de `openingHours`:** dias consecutivos da semana com o mesmo horário viram um único item, ordenados pelo primeiro dia (domingo = 0). Horários diferentes geram itens separados. Dia fechado vira `{"weekdays": [...], "closed": true}`.
+**Regra de `openingHours`:** dias consecutivos na ordem da semana, de segunda a domingo, com o mesmo horário viram um único item. Os itens seguem a mesma ordem, com domingo por último. Horários diferentes geram itens separados. Dia fechado vira `{"weekdays": [...], "closed": true}`.
 
 Dias da semana: `0` é domingo, `1` segunda, até `6` sábado. Abertura incluída, fechamento excluído.
 

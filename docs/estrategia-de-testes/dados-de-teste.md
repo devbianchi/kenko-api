@@ -61,7 +61,7 @@ Os cenários ficam em `tests/support/`, como funções que inserem dados por SQL
 | `conversaAbandonada` | Conversa com última interação há mais de uma hora. | Abandono. |
 | `historicoDoMes` | Conversas, eventos e reservas de outubro/2026 com todos os términos. | Analytics e Home. |
 
-Os cenários são planejados e serão implementados junto com as funcionalidades que os usam. Hoje existe só a base de integração e um cenário de clínica, criado no próprio teste de `GET /api/clinic`.
+Os cenários são implementados junto com as funcionalidades que os usam. Hoje existem `resetClinica`, que limpa a clínica antes de cada teste, e `clinicaBasica`, que monta a clínica da demonstração, ambos em `tests/support/cenarios.ts`.
 
 Cenários não são fixtures globais. Um cenário cria seus dados dentro do teste que o usa.
 

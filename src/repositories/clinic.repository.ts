@@ -1,5 +1,5 @@
 import type { Pool } from 'pg';
-import type { ClinicRecord } from '../models/clinic.model';
+import type { ClinicRecord, DaySchedule, SpecialtyRecord } from '../models/clinic.model';
 
 interface ClinicRow {
   id_clinica: number;
@@ -8,7 +8,18 @@ interface ClinicRow {
   telefone: string;
 }
 
-/** Única camada que fala com a tabela clinica. SQL parametrizado, sem ORM (ADR-0002). */
+interface ScheduleRow {
+  dia_semana: number;
+  abertura: string | null;
+  fechamento: string | null;
+}
+
+interface SpecialtyRow {
+  id_especialidade: number;
+  nome_especialidade: string;
+}
+
+/** Única camada que fala com as tabelas da clínica. SQL parametrizado, sem ORM (ADR-0002). */
 export class ClinicRepository {
   constructor(private readonly pool: Pool) {}
 
@@ -24,5 +35,31 @@ export class ClinicRepository {
       address: row.endereco,
       phone: row.telefone,
     };
+  }
+
+  async findSchedule(clinicId: number): Promise<DaySchedule[]> {
+    const { rows } = await this.pool.query<ScheduleRow>(
+      `SELECT dia_semana, abertura, fechamento
+         FROM expediente
+        WHERE id_clinica = $1
+        ORDER BY dia_semana`,
+      [clinicId],
+    );
+    return rows.map((row) => ({
+      weekday: row.dia_semana,
+      opensAt: row.abertura,
+      closesAt: row.fechamento,
+    }));
+  }
+
+  async findSpecialties(clinicId: number): Promise<SpecialtyRecord[]> {
+    const { rows } = await this.pool.query<SpecialtyRow>(
+      `SELECT id_especialidade, nome_especialidade
+         FROM especialidade
+        WHERE id_clinica = $1
+        ORDER BY id_especialidade`,
+      [clinicId],
+    );
+    return rows.map((row) => ({ id: row.id_especialidade, name: row.nome_especialidade }));
   }
 }

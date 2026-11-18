@@ -1,10 +1,11 @@
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { Pool } from 'pg';
 import type { StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import { buildApp } from '../../src/app';
 import { loadMigrations, migrate } from '../../src/database/migrate';
 import { fixedClock } from '../../src/shared/clock';
+import { clinicaBasica, resetClinica } from '../support/cenarios';
 import { startPostgres } from '../support/postgres';
 
 describe('API com PostgreSQL real', () => {
@@ -21,6 +22,10 @@ describe('API com PostgreSQL real', () => {
       corsOrigins: ['http://localhost:5173'],
     });
   }, 180_000);
+
+  beforeEach(async () => {
+    await resetClinica(pool);
+  });
 
   afterAll(async () => {
     await pool.end();
@@ -47,11 +52,8 @@ describe('API com PostgreSQL real', () => {
     expect(res.body.error.code).toBe('CLINIC_NOT_FOUND');
   });
 
-  it('GET /api/clinic devolve a clínica no envelope com ID opaco quando existe', async () => {
-    await pool.query(
-      `INSERT INTO clinica (nome, endereco, telefone)
-       VALUES ('Clínica Demonstração', 'Rua de Exemplo, 100', '1100000000')`,
-    );
+  it('GET /api/clinic devolve a clínica completa no envelope', async () => {
+    await clinicaBasica(pool);
 
     const res = await request(app).get('/api/clinic');
     expect(res.status).toBe(200);
@@ -64,7 +66,25 @@ describe('API com PostgreSQL real', () => {
       name: 'Clínica Demonstração',
       address: 'Rua de Exemplo, 100',
       phone: '1100000000',
+      openingHours: [
+        { weekdays: [1, 2, 3, 4, 5], opensAt: '07:00', closesAt: '18:00' },
+        { weekdays: [6], opensAt: '09:00', closesAt: '13:00' },
+        { weekdays: [0], closed: true },
+      ],
+      specialties: [
+        { id: 'sp_1', name: 'Clínico geral' },
+        { id: 'sp_2', name: 'Dermatologia' },
+        { id: 'sp_3', name: 'Ortopedia' },
+        { id: 'sp_4', name: 'Cardiologia' },
+      ],
     });
+  });
+
+  it('GET /api/clinic não exige autenticação (VAL-25)', async () => {
+    await clinicaBasica(pool);
+    const res = await request(app).get('/api/clinic');
+    expect(res.status).not.toBe(401);
+    expect(res.status).not.toBe(403);
   });
 
   it('responde 400 INVALID_JSON para corpo malformado', async () => {

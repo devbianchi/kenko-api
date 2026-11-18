@@ -1,8 +1,13 @@
 import { AppError } from '../errors/app-error';
-import { decodeId } from '../shared/opaque-id';
 import type { InteractionInput } from '../schemas/interaction.schema';
+import { decodeId } from '../shared/opaque-id';
 
 export type TipoVisita = 'primeira_consulta' | 'retorno';
+
+export interface DadosPaciente {
+  name: string;
+  birthDate: string;
+}
 
 /** Efeito que uma ação aceita produz além de mudar o passo. */
 export type Effect =
@@ -10,6 +15,8 @@ export type Effect =
   | { type: 'answer_specialty'; especialidadeId: number }
   | { type: 'answer_visit_kind'; tipoVisita: TipoVisita }
   | { type: 'search_slots' }
+  | { type: 'select_slot'; horarioId: number }
+  | { type: 'confirm_appointment'; paciente: DadosPaciente | null }
   | { type: 'exit' };
 
 export interface Transition {
@@ -22,10 +29,25 @@ export interface MachineContext {
   specialtyIds: number[];
   /** Horários já oferecidos na tentativa atual. */
   offeredSlotIds: number[];
+  /** Se a conversa já tem paciente identificado. Uma nova reserva dispensa os dados de novo. */
+  hasPatient: boolean;
+  /** Data de hoje em Brasília, no formato AAAA-MM-DD. Não aceita nascimento depois dela. */
+  hojeLocal: string;
 }
 
 /** Opções do menu que ainda não têm fluxo nesta fase. */
 const OPCOES_AINDA_NAO_DISPONIVEIS = new Set(['opt_clinic_info', 'opt_appointments']);
+
+const DATA_ISO = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Confere se a data existe no calendário (JavaScript aceitaria 30 de fevereiro sem reclamar). */
+function dataExiste(iso: string): boolean {
+  const [ano, mes, dia] = iso.split('-').map(Number) as [number, number, number];
+  const data = new Date(Date.UTC(ano, mes - 1, dia));
+  return (
+    data.getUTCFullYear() === ano && data.getUTCMonth() === mes - 1 && data.getUTCDate() === dia
+  );
+}
 
 function naoPermitido(): AppError {
   return new AppError('ACTION_NOT_ALLOWED_IN_STEP', 'Esta ação não é permitida neste passo.');
@@ -41,6 +63,32 @@ function opcaoInvalida(): AppError {
 function especialidadeDaOpcao(optionId: string, ctx: MachineContext): number | null {
   const id = decodeId('sp', optionId);
   return id !== null && ctx.specialtyIds.includes(id) ? id : null;
+}
+
+function visitaDaOpcao(optionId: string): TipoVisita | null {
+  if (optionId === 'opt_first_visit') return 'primeira_consulta';
+  if (optionId === 'opt_return') return 'retorno';
+  return null;
+}
+
+/** Valida nome e nascimento antes de qualquer gravação (RN-08). */
+function validarPaciente(paciente: DadosPaciente, hojeLocal: string): DadosPaciente {
+  const nome = paciente.name.trim();
+  if (nome.length < 1 || nome.length > 100) {
+    throw new AppError('INVALID_NAME', 'Nome obrigatório, com até 100 caracteres.', {
+      'patient.name': 'Nome obrigatório, com até 100 caracteres.',
+    });
+  }
+
+  const data = paciente.birthDate;
+  const valida = DATA_ISO.test(data) && dataExiste(data) && data <= hojeLocal;
+  if (!valida) {
+    throw new AppError('INVALID_BIRTH_DATE', 'Data de nascimento inválida ou futura.', {
+      'patient.birthDate': 'Data de nascimento inválida ou futura.',
+    });
+  }
+
+  return { name: nome, birthDate: data };
 }
 
 /**
@@ -89,17 +137,32 @@ export function transition(step: string, input: InteractionInput, ctx: MachineCo
 
     case 'slot_selection': {
       if (input.type !== 'select_slot') throw naoPermitido();
-      const slotId = decodeId('slot', input.slotId);
-      if (slotId === null || !ctx.offeredSlotIds.includes(slotId)) {
+      const horarioId = decodeId('slot', input.slotId);
+      if (horarioId === null || !ctx.offeredSlotIds.includes(horarioId)) {
         throw new AppError('INVALID_SLOT', 'Horário não oferecido nesta tentativa.', {
           slotId: 'Horário não oferecido nesta tentativa.',
         });
       }
-      // A escolha valida o horário e registra a seleção na fase 5d.
-      throw new AppError(
-        'ACTION_NOT_ALLOWED_IN_STEP',
-        'A escolha de horário ainda não está disponível.',
-      );
+      // Com paciente já identificado, a seleção conclui a nova reserva sem pedir os dados de novo.
+      if (ctx.hasPatient) {
+        return {
+          nextStep: 'menu',
+          effects: [
+            { type: 'select_slot', horarioId },
+            { type: 'confirm_appointment', paciente: null },
+          ],
+        };
+      }
+      return { nextStep: 'patient_data', effects: [{ type: 'select_slot', horarioId }] };
+    }
+
+    case 'patient_data': {
+      if (input.type !== 'submit_patient') throw naoPermitido();
+      const paciente = validarPaciente(input.patient, ctx.hojeLocal);
+      return {
+        nextStep: 'menu',
+        effects: [{ type: 'confirm_appointment', paciente }],
+      };
     }
 
     case 'continue_after_no_slots': {
@@ -111,10 +174,4 @@ export function transition(step: string, input: InteractionInput, ctx: MachineCo
     default:
       throw naoPermitido();
   }
-}
-
-function visitaDaOpcao(optionId: string): TipoVisita | null {
-  if (optionId === 'opt_first_visit') return 'primeira_consulta';
-  if (optionId === 'opt_return') return 'retorno';
-  return null;
 }

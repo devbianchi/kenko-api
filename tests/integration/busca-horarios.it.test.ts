@@ -266,7 +266,7 @@ describe('busca de horários (fase 5c)', () => {
     expect(await contar(`SELECT count(*) FROM evento_conversa`)).toBe(eventosAntes);
   });
 
-  it('a escolha de horário ainda não confirma nesta fase, e recusa horário que não foi oferecido', async () => {
+  it('recusa horário que não foi oferecido e aceita o oferecido, levando à identificação', async () => {
     const [oferecido] = await agenda('Dermatologia', 'Dra. Helena', 'Sala 1', [
       '2026-11-10T13:00:00-03:00',
     ]);
@@ -289,10 +289,12 @@ describe('busca de horários (fase 5c)', () => {
       });
     expect(naoOferecido.body.error.code).toBe('INVALID_SLOT');
 
-    const oferecidoMas = await request(app)
+    const escolhido = await request(app)
       .post(`/api/conversations/${id}/interactions`)
       .send({ actionId: 'a5', expectedRevision: 3, input: { type: 'select_slot', slotId: slot } });
-    expect(oferecidoMas.body.error.code).toBe('ACTION_NOT_ALLOWED_IN_STEP');
+    expect(escolhido.status).toBe(200);
+    expect(escolhido.body.conversation.step).toBe('patient_data');
+    expect(escolhido.body.view.type).toBe('patient_form');
   });
 
   it('o horário da próxima semana entra só até sábado, e o domingo seguinte já é da semana seguinte', async () => {

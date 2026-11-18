@@ -11,11 +11,12 @@ interface ConversationRow {
   ultima_interacao: Date;
   encerrada_em: Date | null;
   id_tentativa_atual: number | null;
+  id_paciente: number | null;
 }
 
 const SELECT_CONVERSA = `
   SELECT c.id_conversa, p.codigo_passo AS step, c.revisao, c.inicio, c.ultima_interacao,
-         c.encerrada_em, c.id_tentativa_atual
+         c.encerrada_em, c.id_tentativa_atual, c.id_paciente
     FROM conversa c
     JOIN passo_roteiro p ON p.id_passo = c.id_passo_atual`;
 
@@ -28,6 +29,7 @@ function toRecord(row: ConversationRow): ConversationRecord {
     lastInteractionAt: row.ultima_interacao,
     closedAt: row.encerrada_em,
     attemptId: row.id_tentativa_atual,
+    patientId: row.id_paciente,
   };
 }
 
@@ -60,6 +62,10 @@ export class ConversationRepository {
       instante: Date;
       idPasso: number;
       idTentativaAtual: number | null;
+      /** Quando true, a conversa deixa de apontar para uma tentativa (depois da confirmação). */
+      limparTentativa?: boolean;
+      /** Paciente identificado na ação, quando houver. */
+      idPaciente?: number | null;
       encerradaEm: Date | null;
       encerramentoMotivo: string | null;
       encerramentoEtapa: string | null;
@@ -70,7 +76,9 @@ export class ConversationRepository {
           SET revisao = revisao + 1,
               ultima_interacao = $3,
               id_passo_atual = $4,
-              id_tentativa_atual = COALESCE($5, id_tentativa_atual),
+              id_tentativa_atual = CASE WHEN $9::boolean THEN NULL
+                                        ELSE COALESCE($5, id_tentativa_atual) END,
+              id_paciente = COALESCE($10, id_paciente),
               encerrada_em = COALESCE($6, encerrada_em),
               encerramento_motivo = COALESCE($7, encerramento_motivo),
               encerramento_etapa = COALESCE($8, encerramento_etapa)
@@ -84,6 +92,8 @@ export class ConversationRepository {
         atualizacao.encerradaEm,
         atualizacao.encerramentoMotivo,
         atualizacao.encerramentoEtapa,
+        atualizacao.limparTentativa ?? false,
+        atualizacao.idPaciente ?? null,
       ],
     );
     return rowCount === 1;

@@ -630,12 +630,14 @@ GET /api/conversations/cv_1/appointments
 
 `options`, `slots`, `patient_form`, `appointments`, `clinic_information`, `closed`. O backend não retorna HTML nem estruturas de tela livres.
 
-**Estado da implementação (fases 5b e 5c)**
+**Estado da implementação (fases 5b, 5c e 5d)**
 
 - As opções de especialidade têm identificador `sp_<id>`, o mesmo das especialidades da clínica. Os exemplos acima usam nomes ilustrativos.
 - Depois da visita, a busca de horários roda na mesma ação. Com horários, a tela é `view.type = slots` com `searchResult = available`. Sem horários, o passo vai para `continue_after_no_slots` com `searchResult = no_slots` e a opção `opt_continue`.
-- A escolha de horário (`select_slot`) ainda não confirma: retorna 422 `ACTION_NOT_ALLOWED_IN_STEP` para um horário oferecido, e `INVALID_SLOT` para um que não foi oferecido. A confirmação entra na fase 5d.
-- Ações de consulta de reservas, de informações da clínica e de identificação do paciente retornam 422 `ACTION_NOT_ALLOWED_IN_STEP` até as fases 5d e 5e.
+- A escolha de horário (`select_slot`) registra a seleção e pede nome e nascimento (`view.type = patient_form`). Se a conversa já tem paciente, a mesma escolha confirma a reserva e volta ao menu.
+- A identificação (`submit_patient`) valida nome (1 a 100 caracteres) e nascimento (data real, não futura) antes de gravar. Erros: 400 `INVALID_NAME` ou `INVALID_BIRTH_DATE`, com `fields`.
+- A confirmação cria o paciente e a reserva numa transação, registra `APPOINTMENT_CONFIRMED` e devolve `result.type = appointment_confirmed`. Duas conversas disputando o mesmo horário: a segunda recebe 409 `SLOT_UNAVAILABLE`, com a nova tela de horários, e a revisão avança.
+- Ações de consulta e cancelamento de reservas, e de informações da clínica, retornam 422 `ACTION_NOT_ALLOWED_IN_STEP` até a fase 5e.
 - Ações concorrentes da mesma conversa são serializadas por lock da linha. Um reenvio que chega depois da primeira execução recebe o resultado guardado.
 
 **Fluxo completo de agendamento**

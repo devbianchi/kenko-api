@@ -47,11 +47,11 @@ Ordem de execução dos scripts (prefixo numérico):
 
 | Script | Conteúdo |
 |---|---|
-| `000-limpeza.sql` | Remove a demonstração anterior: conversas `demo_`, cadastros e horários da clínica. |
-| `001-clinica.sql` | Clínica, expediente e especialidades. |
-| `002-profissionais.sql` | Médicos e salas. |
-| `003-horarios.sql` | Horários de 30 minutos no expediente, de 60 dias antes até 14 depois da referência. |
-| `004-conversas.sql` | 110 conversas com tentativas, interações, eventos, buscas sem horário, pacientes e reservas. |
+| `000-limpeza.ts` | Remove a demonstração anterior: conversas `demo_`, cadastros e horários da clínica. |
+| `001-clinica.ts` | Clínica, expediente e especialidades. |
+| `002-profissionais.ts` | Médicos e salas. |
+| `003-horarios.ts` | Horários de 30 minutos no expediente, de 60 dias antes até 14 depois da referência. |
+| `004-conversas.ts` | 110 conversas com tentativas, interações, eventos, buscas sem horário, pacientes e reservas. |
 
 O roteiro (`passo_roteiro` e `opcao_roteiro`) não é carregado pelo seed. Ele vem de uma migration, porque é conteúdo fixo do produto, não dado de demonstração (escopo, RN-03).
 

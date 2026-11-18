@@ -117,7 +117,7 @@ describe('reservas da conversa e informações da clínica (fase 5e)', () => {
     await container.stop();
   });
 
-  it('mostra as informações da clínica e volta ao menu, sem encerrar (contrato, 6.4)', async () => {
+  it('mostra as informações da clínica no passo menu, com as opções do menu, sem encerrar (contrato, 6.4)', async () => {
     const conv = await request(app).post('/api/conversations').send({ contactId: 'info' });
     const id = conv.body.conversation.id as string;
 
@@ -129,8 +129,9 @@ describe('reservas da conversa e informações da clínica (fase 5e)', () => {
         input: { type: 'select_option', optionId: 'opt_clinic_info' },
       });
     expect(info.status).toBe(200);
+    expect(info.body.messages[0].text).toBe('Veja as informações da clínica.');
     expect(info.body.conversation).toMatchObject({
-      step: 'clinic_information',
+      step: 'menu',
       effectiveStatus: 'active',
     });
     expect(info.body.view).toMatchObject({
@@ -152,17 +153,24 @@ describe('reservas da conversa e informações da clínica (fase 5e)', () => {
           { id: 'sp_4', name: 'Cardiologia' },
         ],
       },
-      options: [{ id: 'opt_menu', label: 'Voltar ao menu' }],
+      options: [
+        { id: 'opt_schedule', label: 'Agendar uma consulta' },
+        { id: 'opt_clinic_info', label: 'Ver informações da clínica' },
+        { id: 'opt_appointments', label: 'Ver ou cancelar um agendamento' },
+      ],
     });
 
-    const volta = await request(app)
+    const lista = await request(app)
       .post(`/api/conversations/${id}/interactions`)
       .send({
         actionId: 'i2',
         expectedRevision: 1,
-        input: { type: 'select_option', optionId: 'opt_menu' },
+        input: { type: 'select_option', optionId: 'opt_appointments' },
       });
-    expect(volta.body.conversation).toMatchObject({ step: 'menu', effectiveStatus: 'active' });
+    expect(lista.body.conversation).toMatchObject({
+      step: 'appointments',
+      effectiveStatus: 'active',
+    });
   });
 
   it('lista as reservas da conversa com status e permissão de cancelamento', async () => {
@@ -220,6 +228,9 @@ describe('reservas da conversa e informações da clínica (fase 5e)', () => {
       });
 
     expect(cancelada.status).toBe(200);
+    expect(cancelada.body.messages.map((m: { text: string }) => m.text)).toEqual([
+      'Agendamento cancelado.',
+    ]);
     expect(cancelada.body.result).toEqual({
       type: 'appointment_cancelled',
       appointmentId: reservaId,

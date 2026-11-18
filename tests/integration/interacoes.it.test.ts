@@ -69,12 +69,15 @@ describe('interações do bot: pipeline, revisão, idempotência e fluxo de agen
       'sp_3',
       'sp_4',
     ]);
-    expect(menu.body.messages[0].text).toBe('Qual especialidade você procura?');
+    expect(menu.body.messages[0].text).toBe('Qual especialidade procura?');
 
     const especialidade = await request(app)
       .post(`/api/conversations/${id}/interactions`)
       .send(acao('act_2', 1, { type: 'select_option', optionId: 'sp_2' }));
     expect(especialidade.body.conversation).toMatchObject({ revision: 2, step: 'visit_kind' });
+    expect(especialidade.body.messages[0].text).toBe(
+      'É primeira consulta ou retorno em Dermatologia?',
+    );
     expect(especialidade.body.view.options).toEqual([
       { id: 'opt_first_visit', label: 'Primeira consulta' },
       { id: 'opt_return', label: 'Retorno' },
@@ -246,7 +249,7 @@ describe('interações do bot: pipeline, revisão, idempotência e fluxo de agen
     });
     expect(res.body.view).toEqual({ type: 'closed' });
     expect(res.body.availableActions).toEqual([]);
-    expect(res.body.messages[0].text).toBe('Obrigado por usar o atendimento. Até logo!');
+    expect(res.body.messages[0].text).toBe('Até logo!');
     expect(
       await contar(
         `SELECT count(*) FROM tentativa WHERE resultado = 'exited' AND finalizada_em IS NOT NULL`,

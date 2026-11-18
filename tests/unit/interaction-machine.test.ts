@@ -164,8 +164,17 @@ describe('máquina de estados do roteiro', () => {
     });
   });
 
-  it('volta ao menu das informações e da lista pela opção Voltar ao menu', () => {
-    expect(transition('clinic_information', opcao('opt_menu'), ctx).nextStep).toBe('menu');
+  it('a tela da clínica aceita as opções do menu (contrato, 6.4)', () => {
+    expect(transition('clinic_information', opcao('opt_schedule'), ctx).nextStep).toBe('specialty');
+    expect(transition('clinic_information', opcao('opt_clinic_info'), ctx).nextStep).toBe(
+      'clinic_information',
+    );
+    expect(transition('clinic_information', opcao('opt_appointments'), ctx).nextStep).toBe(
+      'appointments',
+    );
+  });
+
+  it('volta ao menu da lista de reservas pela opção Voltar ao menu', () => {
     expect(transition('appointments', opcao('opt_menu'), ctx).nextStep).toBe('menu');
   });
 

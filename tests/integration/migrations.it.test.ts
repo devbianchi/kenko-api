@@ -68,12 +68,14 @@ describe('migrations e restrições do banco', () => {
   }
 
   describe('roteiro do bot', () => {
-    it('cria os dez passos do roteiro, identificados pelo código técnico', async () => {
+    it('cria os passos do roteiro, incluindo as mensagens de cancelamento e volta ao menu, identificados pelo código técnico', async () => {
       const { rows } = await pool.query<{ codigo_passo: string }>(
         'SELECT codigo_passo FROM passo_roteiro ORDER BY codigo_passo',
       );
       expect(rows.map((r) => r.codigo_passo)).toEqual([
         'appointments',
+        'back_to_menu',
+        'cancelled',
         'clinic_information',
         'closed',
         'confirmation',

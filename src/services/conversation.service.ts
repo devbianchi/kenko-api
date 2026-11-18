@@ -98,7 +98,7 @@ export class ConversationService {
     return {
       record,
       status: effectiveStatus(record, now),
-      view: await this.views.build(record.step, db),
+      view: await this.views.build(record.step, record.attemptId, db),
     };
   }
 }

@@ -35,12 +35,13 @@ export function viewBody(view: ConversationView) {
   if (view.type !== 'slots') return view;
   return {
     type: 'slots' as const,
+    searchResult: view.searchResult,
     slots: view.slots.map((slot) => ({
       id: slot.id,
       startsAt: toBusinessIso(slot.startsAt),
       endsAt: toBusinessIso(slot.endsAt),
-      doctorName: slot.doctorName,
-      roomName: slot.roomName,
+      doctor: slot.doctor,
+      room: slot.room,
     })),
   };
 }

@@ -21,6 +21,14 @@ export class AttemptRepository {
     return rows[0]!.id;
   }
 
+  async findSpecialty(idTentativa: number, db: Db): Promise<number | null> {
+    const { rows } = await db.query<{ id: number | null }>(
+      'SELECT id_especialidade AS id FROM tentativa WHERE id_tentativa = $1',
+      [idTentativa],
+    );
+    return rows[0]?.id ?? null;
+  }
+
   async setSpecialty(idTentativa: number, idEspecialidade: number, db: Db): Promise<void> {
     await db.query('UPDATE tentativa SET id_especialidade = $2 WHERE id_tentativa = $1', [
       idTentativa,

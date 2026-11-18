@@ -69,6 +69,14 @@ Os percentuais são referência. A distribuição exata pode variar em uma ou du
 | Home e Dia | Consultas com status completo, pendente e cancelado no mês de referência. Pelo menos um dia com quatro consultas. |
 | Próximas consultas | Pelo menos cinco pendentes com início futuro a partir da data de carga. |
 
+## Decisões da implementação
+
+Os números abaixo foram fixados ao implementar `004-conversas.sql`. Cada uma é uma escolha de dados, e deve ser revista se o dataset mudar:
+
+- **110 conversas, não 120.** As faixas de verificação (iniciadas 80–100, confirmadas 40–55, saídas 15–25, abandonadas 10–20) são as que valem. Com 120 conversas, a faixa de iniciadas seria ultrapassada.
+- **Encerramento `concluded`.** Conversas que confirmaram e as de só consulta de informações têm encerramento com motivo `concluded`, sem evento `EXITED`. Sem isso, toda confirmação contaria como abandono e a faixa de abandonadas (10–20) não se sustentaria. A definição de abandono do endpoint (sem encerramento explícito) é mantida.
+- **Mapa de calor parcial.** As conversas começam entre 06h30 e 17h, com alguns casos de sábado à tarde e domingo. As faixas de 00h a 06h e de 18h em diante não têm inícios.
+
 ## Pacientes
 
 - Um paciente por conversa que confirmou (cerca de 50 pacientes).

@@ -41,7 +41,7 @@ npm run db:migrate
 npm run db:seed
 ```
 
-> **Estado atual:** o comando existe e carrega clínica, expediente, especialidades, médicos, salas e horários. As conversas (`004-conversas.sql`) entram no próximo passo da Fase 4.
+> **Estado atual:** o comando carrega a demonstração completa: cadastros, horários e 110 conversas com seus desfechos. Os volumes e as faixas de verificação estão em [dataset.md](dataset.md).
 
 Ordem de execução dos scripts (prefixo numérico):
 
@@ -51,7 +51,7 @@ Ordem de execução dos scripts (prefixo numérico):
 | `001-clinica.sql` | Clínica, expediente e especialidades. |
 | `002-profissionais.sql` | Médicos e salas. |
 | `003-horarios.sql` | Horários de 30 minutos no expediente, de 60 dias antes até 14 depois da referência. |
-| `004-conversas.sql` | Conversas, tentativas, interações, eventos, buscas, pacientes e reservas. Próximo passo. |
+| `004-conversas.sql` | 110 conversas com tentativas, interações, eventos, buscas sem horário, pacientes e reservas. |
 
 O roteiro (`passo_roteiro` e `opcao_roteiro`) não é carregado pelo seed. Ele vem de uma migration, porque é conteúdo fixo do produto, não dado de demonstração (escopo, RN-03).
 

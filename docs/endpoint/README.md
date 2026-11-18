@@ -637,9 +637,9 @@ GET /api/conversations/cv_1/appointments
 - A escolha de horário (`select_slot`) registra a seleção e pede nome e nascimento (`view.type = patient_form`). Se a conversa já tem paciente, a mesma escolha confirma a reserva e volta ao menu.
 - A identificação (`submit_patient`) valida nome (1 a 100 caracteres) e nascimento (data real, não futura) antes de gravar. Erros: 400 `INVALID_NAME` ou `INVALID_BIRTH_DATE`, com `fields`.
 - A confirmação cria o paciente e a reserva numa transação, registra `APPOINTMENT_CONFIRMED` e devolve `result.type = appointment_confirmed`. Duas conversas disputando o mesmo horário: a segunda recebe 409 `SLOT_UNAVAILABLE`, com a nova tela de horários, e a revisão avança.
-- Informações da clínica (`opt_clinic_info`) mostram dados, horários e especialidades (`view.type = clinic_information`). As opções seguem o roteiro, com apenas "Voltar ao menu". O exemplo do contrato lista as opções do menu; a diferença está registrada para revisão.
+- Informações da clínica (`opt_clinic_info`) mantêm `step = menu` e mostram `view.type = clinic_information`, com os dados da clínica e as opções do menu, como no contrato (6.4).
 - A lista de reservas (`opt_appointments` ou `GET /api/conversations/{id}/appointments`) mostra status e `canCancel`. `cancel_appointment` cancela só reserva pendente da própria conversa: reserva de outra conversa responde 404 `APPOINTMENT_NOT_FOUND`, e reserva completa ou já cancelada responde 409 `APPOINTMENT_NOT_CANCELLABLE`. O horário cancelado volta a ser oferecido se ainda for futuro.
-- O texto de confirmação de cancelamento não existe no roteiro. Nesta fase, o cancelamento responde só com a mensagem do menu e com `result.type = appointment_cancelled`.
+- Os textos das mensagens vêm do roteiro (migration V22), como no contrato. Trechos variáveis são preenchidos na hora: especialidade na pergunta da visita, e data e hora na confirmação.
 - Ações concorrentes da mesma conversa são serializadas por lock da linha. Um reenvio que chega depois da primeira execução recebe o resultado guardado.
 
 **Fluxo completo de agendamento**

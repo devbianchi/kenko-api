@@ -179,6 +179,16 @@ Restrição: `UNIQUE (id_conversa, action_id)`. É o que garante a idempotência
 
 Índices (V17): `(id_conversa, tipo)` e `(tipo, instante)`.
 
+### oferta_horario (V21, nova)
+
+| Coluna | Tipo | Restrições | Observação |
+|---|---|---|---|
+| `id_tentativa` | INT | PK (com `id_horario`), FK `tentativa` | Tentativa que recebeu a oferta. |
+| `id_horario` | INT | PK (com `id_tentativa`), FK `horario` | Horário oferecido. |
+| `ordem` | SMALLINT | NOT NULL, UNIQUE por `id_tentativa` | Posição na tela, de 1 a 3. |
+
+A escolha de horário (fase 5d) só aceita um horário desta lista. Reexibir a conversa lê esta lista e não executa nova busca.
+
 ### busca_sem_horario (V15, nova)
 
 | Coluna | Tipo | Restrições | Observação |

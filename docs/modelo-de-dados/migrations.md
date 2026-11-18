@@ -25,6 +25,8 @@ Ordem de execução pelo runner de migrations (`npm run db:migrate`, em `src/dat
 | V17 | `indices_de_consulta` | Nova | Criar | Índices de performance das métricas, separados para revisão. |
 | V18 | `ajustes_fk_e_checks` | Nova | Criar | Chaves estrangeiras cruzadas que dependem de tabelas criadas depois (ex.: `conversa.id_tentativa_atual`). |
 | V19 | `dados_roteiro_bot` | Dados | Criar | Passos e opções fixos do roteiro do bot (ADR-0009), com `codigo_opcao` estável por passo. |
+| V20 | `texto_boas_vindas` | Dados | Criar | Ajusta o texto de boas-vindas do menu ao contrato. |
+| V21 | `oferta_horario` | Nova | Criar | Horários oferecidos em cada tentativa, na ordem mostrada, para a escolha validar depois. |
 
 ## Nota sobre V7 (etapas do roteiro)
 

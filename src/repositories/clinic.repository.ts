@@ -52,6 +52,17 @@ export class ClinicRepository {
     }));
   }
 
+  async findSpecialtyName(
+    especialidadeId: number,
+    db: Pool | PoolClient = this.pool,
+  ): Promise<string | null> {
+    const { rows } = await db.query<{ nome: string }>(
+      'SELECT nome_especialidade AS nome FROM especialidade WHERE id_especialidade = $1',
+      [especialidadeId],
+    );
+    return rows[0]?.nome ?? null;
+  }
+
   async findSpecialties(
     clinicId: number,
     db: Pool | PoolClient = this.pool,

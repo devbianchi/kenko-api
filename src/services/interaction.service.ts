@@ -15,6 +15,7 @@ import type { SlotRepository } from '../repositories/slot.repository';
 import type { InteractionBody } from '../schemas/interaction.schema';
 import type { Clock } from '../shared/clock';
 import { toBusinessIso } from '../shared/business-time';
+import { formatarData, formatarHora, renderizarTexto } from '../shared/mensagens';
 import {
   type ActionOutcome,
   type AppointmentCancelledResult,
@@ -42,6 +43,8 @@ interface Progresso {
   idPaciente: number | null;
   limparTentativa: boolean;
   resultado: AppointmentResult | AppointmentCancelledResult | null;
+  /** Início do horário confirmado, para o texto da confirmação. */
+  horarioInicio: Date | null;
 }
 
 /**
@@ -144,6 +147,7 @@ export class InteractionService {
       idPaciente: null,
       limparTentativa: false,
       resultado: null,
+      horarioInicio: null,
     };
 
     for (const effect of passo.effects) {
@@ -347,6 +351,7 @@ export class InteractionService {
     if (!horario) throw new Error('Horário da reserva não encontrado.');
 
     progresso.idPaciente = pacienteId;
+    progresso.horarioInicio = horario.startsAt;
     progresso.limparTentativa = true;
     progresso.idTentativa = null;
     progresso.proximoPasso = 'menu';
@@ -401,17 +406,43 @@ export class InteractionService {
     now: Date,
     db: Db,
   ): Promise<BotMessage[]> {
-    const codigos =
-      progresso.resultado?.type === 'appointment_confirmed'
-        ? ['confirmation', 'menu']
-        : [progresso.proximoPasso];
     const mensagens: BotMessage[] = [];
-    for (const codigo of codigos) {
-      const texto = await this.roteiro.findStepText(codigo, db);
+    for (const { codigo, variaveis } of await this.textosDaAcao(progresso, db)) {
+      const modelo = await this.roteiro.findStepText(codigo, db);
+      const texto = renderizarTexto(modelo, variaveis);
       const idMensagem = await this.conversations.insertBotInteraction(db, conversationId, now);
       mensagens.push({ id: `msg_${idMensagem}`, author: 'bot', text: texto, sentAt: now });
     }
     return mensagens;
+  }
+
+  /** Quais textos do roteiro a ação mostra, e com quais valores preenchidos. */
+  private async textosDaAcao(
+    progresso: Progresso,
+    db: Db,
+  ): Promise<{ codigo: string; variaveis: Record<string, string> }[]> {
+    if (progresso.resultado?.type === 'appointment_confirmed' && progresso.horarioInicio) {
+      const inicio = progresso.horarioInicio;
+      return [
+        {
+          codigo: 'confirmation',
+          variaveis: { data: formatarData(inicio), hora: formatarHora(inicio) },
+        },
+        { codigo: 'back_to_menu', variaveis: {} },
+      ];
+    }
+    if (progresso.resultado?.type === 'appointment_cancelled') {
+      return [{ codigo: 'cancelled', variaveis: {} }];
+    }
+
+    const variaveis: Record<string, string> = {};
+    if (progresso.proximoPasso === 'visit_kind' && progresso.idTentativa !== null) {
+      const idEspecialidade = await this.attempts.findSpecialty(progresso.idTentativa, db);
+      const nome =
+        idEspecialidade === null ? null : await this.clinics.findSpecialtyName(idEspecialidade, db);
+      variaveis.especialidade = nome ?? '';
+    }
+    return [{ codigo: progresso.proximoPasso, variaveis }];
   }
 
   /**

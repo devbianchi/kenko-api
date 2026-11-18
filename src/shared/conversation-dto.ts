@@ -15,7 +15,7 @@ export function conversationBody(record: ConversationRecord, status: EffectiveSt
     id: encodeId('cv', record.id),
     effectiveStatus: status,
     revision: record.revision,
-    step: record.step,
+    step: record.step === 'clinic_information' ? 'menu' : record.step,
     attemptId: record.attemptId === null ? null : encodeId('attempt', record.attemptId),
   };
 }

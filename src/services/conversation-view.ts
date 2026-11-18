@@ -76,7 +76,8 @@ export class ConversationViewBuilder {
       return {
         type: 'clinic_information',
         clinic: await this.clinicInformation(db),
-        options: await this.roteiro.findOptions(step, db),
+        // A tela da clínica mostra as opções do menu (contrato, 6.4).
+        options: await this.roteiro.findOptions('menu', db),
       };
     }
 

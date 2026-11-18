@@ -100,7 +100,8 @@ export function transition(step: string, input: InteractionInput, ctx: MachineCo
   }
 
   switch (step) {
-    case 'menu': {
+    case 'menu':
+    case 'clinic_information': {
       if (input.type !== 'select_option') throw naoPermitido();
       if (input.optionId === 'opt_schedule') {
         return { nextStep: 'specialty', effects: [{ type: 'start_attempt' }] };
@@ -164,12 +165,6 @@ export function transition(step: string, input: InteractionInput, ctx: MachineCo
         nextStep: 'menu',
         effects: [{ type: 'confirm_appointment', paciente }],
       };
-    }
-
-    case 'clinic_information': {
-      if (input.type !== 'select_option') throw naoPermitido();
-      if (input.optionId !== 'opt_menu') throw opcaoInvalida();
-      return { nextStep: 'menu', effects: [] };
     }
 
     case 'appointments': {

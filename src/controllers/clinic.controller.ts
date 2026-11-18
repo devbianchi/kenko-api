@@ -20,6 +20,11 @@ export class ClinicController {
           name: clinic.name,
           address: clinic.address,
           phone: clinic.phone,
+          openingHours: clinic.openingHours,
+          specialties: clinic.specialties.map((s) => ({
+            id: encodeId('sp', s.id),
+            name: s.name,
+          })),
         },
         this.clock,
       ),

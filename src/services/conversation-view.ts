@@ -1,5 +1,6 @@
 import type { Pool, PoolClient } from 'pg';
 import type { ConversationView } from '../models/conversation.model';
+import type { AttemptRepository } from '../repositories/attempt.repository';
 import type { ClinicRepository } from '../repositories/clinic.repository';
 import type { RoteiroRepository } from '../repositories/roteiro.repository';
 import type { SlotRepository } from '../repositories/slot.repository';
@@ -17,6 +18,7 @@ export class ConversationViewBuilder {
     private readonly roteiro: RoteiroRepository,
     private readonly clinics: ClinicRepository,
     private readonly slots: SlotRepository,
+    private readonly attempts: AttemptRepository,
   ) {}
 
   async build(
@@ -35,12 +37,29 @@ export class ConversationViewBuilder {
       return { type: 'slots', searchResult: 'available', slots };
     }
 
+    if (step === 'patient_data') {
+      const selecionado = attemptId === null ? null : await this.selectedSlot(attemptId, db);
+      return {
+        type: 'patient_form',
+        fields: [
+          { name: 'name', type: 'text', required: true },
+          { name: 'birthDate', type: 'date', required: true },
+        ],
+        selectedSlot: selecionado,
+      };
+    }
+
     if (step === 'continue_after_no_slots') {
       const options = await this.roteiro.findOptions(step, db);
       return { type: 'options', options, searchResult: 'no_slots' };
     }
 
     return { type: 'options', options: await this.roteiro.findOptions(step, db) };
+  }
+
+  private async selectedSlot(attemptId: number, db: Db) {
+    const idHorario = await this.attempts.findSelectedSlot(attemptId, db);
+    return idHorario === null ? null : this.slots.findOne(idHorario, db);
   }
 
   /** Identificadores internos das especialidades da clínica, na ordem da tela. */

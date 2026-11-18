@@ -19,18 +19,23 @@ export class EventRepository {
       tipo: TipoEvento;
       instante: Date;
       idEspecialidade?: number | null;
+      idHorario?: number | null;
+      idReserva?: number | null;
     },
     db: Db,
   ): Promise<void> {
     await db.query(
-      `INSERT INTO evento_conversa (id_conversa, id_tentativa, tipo, instante, id_especialidade)
-       VALUES ($1, $2, $3, $4, $5)`,
+      `INSERT INTO evento_conversa
+         (id_conversa, id_tentativa, tipo, instante, id_especialidade, id_horario, id_reserva)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [
         evento.idConversa,
         evento.idTentativa,
         evento.tipo,
         evento.instante,
         evento.idEspecialidade ?? null,
+        evento.idHorario ?? null,
+        evento.idReserva ?? null,
       ],
     );
   }

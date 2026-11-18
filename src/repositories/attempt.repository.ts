@@ -29,6 +29,30 @@ export class AttemptRepository {
     return rows[0]?.id ?? null;
   }
 
+  async setSelectedSlot(idTentativa: number, idHorario: number | null, db: Db): Promise<void> {
+    await db.query('UPDATE tentativa SET id_horario_selecionado = $2 WHERE id_tentativa = $1', [
+      idTentativa,
+      idHorario,
+    ]);
+  }
+
+  async findSelectedSlot(idTentativa: number, db: Db): Promise<number | null> {
+    const { rows } = await db.query<{ id: number | null }>(
+      'SELECT id_horario_selecionado AS id FROM tentativa WHERE id_tentativa = $1',
+      [idTentativa],
+    );
+    return rows[0]?.id ?? null;
+  }
+
+  /** Fecha a tentativa com a reserva confirmada. */
+  async finishConfirmed(idTentativa: number, instante: Date, db: Db): Promise<void> {
+    await db.query(
+      `UPDATE tentativa SET resultado = 'confirmed', finalizada_em = $2
+        WHERE id_tentativa = $1 AND finalizada_em IS NULL`,
+      [idTentativa, instante],
+    );
+  }
+
   async setSpecialty(idTentativa: number, idEspecialidade: number, db: Db): Promise<void> {
     await db.query('UPDATE tentativa SET id_especialidade = $2 WHERE id_tentativa = $1', [
       idTentativa,

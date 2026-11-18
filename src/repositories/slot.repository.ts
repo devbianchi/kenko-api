@@ -59,6 +59,36 @@ export class SlotRepository {
     return rows.map((row) => ({ id: row.id, inicio: row.inicio, fim: row.fim }));
   }
 
+  /** Verifica se o horário ainda é futuro e não tem reserva ativa, no momento da seleção. */
+  async isFree(idHorario: number, agora: Date, db: Db): Promise<boolean> {
+    const { rows } = await db.query<{ ok: boolean }>(
+      `SELECT EXISTS (
+          SELECT 1 FROM horario h
+           WHERE h.id_horario = $1
+             AND h.inicio > $2
+             AND NOT EXISTS (
+                 SELECT 1 FROM reserva r
+                  WHERE r.id_horario = h.id_horario AND r.cancelada_em IS NULL)
+       ) AS ok`,
+      [idHorario, agora],
+    );
+    return rows[0]!.ok;
+  }
+
+  /** Um horário pelo identificador, na forma da tela. Usado para o horário escolhido. */
+  async findOne(idHorario: number, db: Db): Promise<SlotView | null> {
+    const { rows } = await db.query<SlotRow>(
+      `SELECT h.id_horario AS id, h.inicio, h.fim,
+              m.id_medico, m.nome_medico, s.id_sala, s.nome AS nome_sala
+         FROM horario h
+         JOIN medico m ON m.id_medico = h.id_medico
+         JOIN sala s ON s.id_sala = h.id_sala
+        WHERE h.id_horario = $1`,
+      [idHorario],
+    );
+    return rows[0] ? toSlotView(rows[0]) : null;
+  }
+
   async insertOffers(idTentativa: number, idsHorario: number[], db: Db): Promise<void> {
     for (const [indice, idHorario] of idsHorario.entries()) {
       await db.query(

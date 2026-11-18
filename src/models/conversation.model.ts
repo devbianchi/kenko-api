@@ -9,6 +9,7 @@ export interface ConversationRecord {
   lastInteractionAt: Date;
   closedAt: Date | null;
   attemptId: number | null;
+  patientId: number | null;
 }
 
 export interface ViewOption {
@@ -28,9 +29,16 @@ export interface SlotView {
 /** Resultado da busca de horários, quando a tela depende dela. */
 export type SearchResult = 'available' | 'no_slots';
 
+export interface PatientFormView {
+  type: 'patient_form';
+  fields: { name: string; type: 'text' | 'date'; required: true }[];
+  selectedSlot: SlotView | null;
+}
+
 export type ConversationView =
   | { type: 'options'; options: ViewOption[]; searchResult?: SearchResult }
   | { type: 'slots'; searchResult: 'available'; slots: SlotView[] }
+  | PatientFormView
   | { type: 'closed' };
 
 export interface BotMessage {

@@ -51,13 +51,48 @@ describe('carga de demonstração: conversas e funil', () => {
     expect(n).toBeLessThanOrEqual(55);
   });
 
-  it('tem entre 15 e 25 conversas com saída explícita (dataset)', async () => {
+  it('tem 93 conversas encerradas por Sair: todas as que não abandonaram', async () => {
     const n = await contar(
       pool,
       `SELECT count(DISTINCT id_conversa) FROM evento_conversa WHERE tipo = 'EXITED'`,
     );
-    expect(n).toBeGreaterThanOrEqual(15);
-    expect(n).toBeLessThanOrEqual(25);
+    expect(n).toBe(93);
+  });
+
+  it('tem 16 saídas durante o agendamento (viu horários ou viu sem horários e saiu)', async () => {
+    const n = await contar(
+      pool,
+      `SELECT count(DISTINCT e.id_conversa) FROM evento_conversa e
+         JOIN tentativa t ON t.id_tentativa = e.id_tentativa
+        WHERE e.tipo = 'EXITED' AND t.resultado IN ('exited', 'no_slots')`,
+    );
+    expect(n).toBe(16);
+  });
+
+  it('toda conversa encerrada tem motivo exited e etapa de encerramento', async () => {
+    const n = await contar(
+      pool,
+      `SELECT count(*) FROM conversa
+        WHERE contato LIKE 'demo\\_%'
+          AND encerrada_em IS NOT NULL
+          AND (encerramento_motivo <> 'exited' OR encerramento_etapa IS NULL)`,
+    );
+    expect(n).toBe(0);
+  });
+
+  it('há conversas iniciadas de madrugada e à noite, para cobrir o mapa de calor', async () => {
+    const madrugada = await contar(
+      pool,
+      `SELECT count(*) FROM conversa WHERE contato LIKE 'demo\\_%'
+          AND (inicio AT TIME ZONE 'America/Sao_Paulo')::time < '06:00'`,
+    );
+    const noite = await contar(
+      pool,
+      `SELECT count(*) FROM conversa WHERE contato LIKE 'demo\\_%'
+          AND (inicio AT TIME ZONE 'America/Sao_Paulo')::time >= '18:00'`,
+    );
+    expect(madrugada).toBeGreaterThanOrEqual(3);
+    expect(noite).toBeGreaterThanOrEqual(3);
   });
 
   it('tem entre 10 e 20 conversas abandonadas: sem encerramento e sem saída', async () => {

@@ -121,8 +121,8 @@ export class ConversationController {
   interact = async (req: Request, res: Response): Promise<void> => {
     const id = conversationIdParam(req);
     const body = parseInteractionBody(req.body);
-    const dto = await this.interactions.process(id, body);
-    res.status(200).json(dto);
+    const outcome = await this.interactions.process(id, body);
+    res.status(outcome.status).json(outcome.body);
   };
 
   private detail(state: ConversationState) {

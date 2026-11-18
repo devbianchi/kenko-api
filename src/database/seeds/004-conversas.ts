@@ -1,12 +1,16 @@
--- Conversas da demonstração: 110 conversas em 60 dias antes da referência, com desfechos
--- fixos e determinísticos. Cada conversa é gerada por uma linha de `plano`, e a categoria
--- define eventos, tentativa, busca sem horário, paciente e reserva.
--- Categorias (n = número da conversa):
---   1–40 confirmou              41–50 confirmou e cancelou     51–53 consultou e agendou
---   54–61 escolheu e não confirmou  62–70 viu horários e saiu  71–75 abandonou após triagem
---   76–79 abandonou com dados     80–86 viu sem horários e saiu  87–104 só consultou
---   105–110 saiu no menu
+// Conversas da demonstração: 110 conversas em 60 dias antes da referência, com desfechos
+// fixos e determinísticos. Cada conversa é gerada por uma linha de plano, e a categoria
+// define eventos, tentativa, busca sem horário, paciente e reserva.
+// Categorias (n = número da conversa):
+// 1–40 confirmou                  41–50 confirmou e cancelou     51–53 consultou e agendou
+// 54–61 escolheu e não confirmou  62–70 viu horários e saiu      71–75 abandonou após triagem
+// 76–79 abandonou com dados       80–86 viu sem horários e saiu  87–104 só consultou
+// 105–110 saiu no menu
+// Confirmar não encerra a conversa (escopo, RN-11): quem confirma ou só consulta informações
+// sai pelo Sair, e as conversas abandonadas são as que não têm encerramento explícito.
 
+/** Script SQL da demonstração, executado pelo runner dentro da transação de carga. */
+export const sql = String.raw`
 CREATE TEMP TABLE plano ON COMMIT DROP AS
 WITH ref AS (
     SELECT (current_setting('kenko.referencia')::timestamptz AT TIME ZONE 'America/Sao_Paulo')::date AS hoje
@@ -38,6 +42,12 @@ horas AS (
                WHEN n = 80 THEN interval '10 hours'
                WHEN n = 81 THEN interval '15 hours'
                WHEN n = 82 THEN interval '6 hours 30 minutes'
+               WHEN n = 87 THEN interval '0 hours 30 minutes'
+               WHEN n = 88 THEN interval '2 hours 30 minutes'
+               WHEN n = 89 THEN interval '4 hours 30 minutes'
+               WHEN n = 90 THEN interval '19 hours'
+               WHEN n = 91 THEN interval '21 hours'
+               WHEN n = 92 THEN interval '23 hours'
                WHEN extract(dow FROM dia)::int = 6 THEN make_interval(hours => 9 + (n % 4))
                ELSE make_interval(hours => 8 + (n % 10))
            END AS inicio_local
@@ -73,11 +83,13 @@ SELECT b.n,
        b.inicio,
        CASE WHEN b.duracao_min IS NOT NULL
             THEN b.inicio + make_interval(mins => b.duracao_min)
+            END AS confirmada_em,
+       CASE WHEN b.duracao_min IS NOT NULL
+            THEN b.inicio + make_interval(mins => b.duracao_min + 1)
             ELSE b.inicio + interval '15 minutes' END AS fim,
        b.categoria IN ('confirmou','confirmou_cancelou','consultou_agendou') AS confirma,
        b.categoria = 'confirmou_cancelou' AS cancela,
-       b.categoria IN ('viu_horarios_saiu','viu_sem_horarios_saiu','saiu_menu') AS sai,
-       b.categoria IN ('confirmou','confirmou_cancelou','consultou_agendou','so_consultou') AS concluida,
+       b.categoria NOT IN ('escolheu_nao_confirmou','abandonou_triagem','abandonou_dados') AS sai,
        b.categoria IN ('escolheu_nao_confirmou','abandonou_triagem','abandonou_dados') AS abandona,
        b.categoria IN ('confirmou','confirmou_cancelou','consultou_agendou','escolheu_nao_confirmou',
                        'viu_horarios_saiu','abandonou_dados') AS busca_com_horario,
@@ -89,21 +101,14 @@ SELECT b.n,
        CASE WHEN b.categoria = 'escolheu_nao_confirmou' THEN 'slot_selection'
             WHEN b.categoria = 'abandonou_triagem'      THEN 'visit_kind'
             WHEN b.categoria = 'abandonou_dados'        THEN 'patient_data'
-            WHEN b.categoria IN ('viu_horarios_saiu','viu_sem_horarios_saiu') THEN 'closed'
-            WHEN b.categoria = 'saiu_menu'              THEN 'closed'
-            ELSE 'menu' END AS id_passo_atual_codigo,
-       CASE WHEN b.categoria IN ('viu_horarios_saiu','viu_sem_horarios_saiu') THEN 'exited'
-            WHEN b.categoria = 'saiu_menu'            THEN 'exited'
-            WHEN b.categoria IN ('confirmou','confirmou_cancelou','consultou_agendou','so_consultou')
-                 THEN 'concluded'
-            ELSE NULL END AS encerramento_motivo,
-       CASE WHEN b.categoria IN ('viu_horarios_saiu','viu_sem_horarios_saiu') THEN 'slot_selection'
-            WHEN b.categoria = 'saiu_menu'                                 THEN 'menu'
-            WHEN b.categoria IN ('confirmou','confirmou_cancelou','consultou_agendou') THEN 'confirmation'
-            WHEN b.categoria = 'so_consultou'                              THEN 'menu'
+            ELSE 'closed' END AS id_passo_atual_codigo,
+       CASE WHEN b.categoria IN ('confirmou','confirmou_cancelou','consultou_agendou') THEN 'confirmation'
+            WHEN b.categoria IN ('viu_horarios_saiu','viu_sem_horarios_saiu') THEN 'slot_selection'
+            WHEN b.categoria IN ('so_consultou','saiu_menu') THEN 'menu'
             ELSE NULL END AS encerramento_etapa,
-       CASE WHEN b.n = 80 THEN 'Dermatologia'
-            WHEN b.n IN (81, 82) THEN 'Dermatologia'
+       CASE WHEN b.categoria IN ('escolheu_nao_confirmou','abandonou_triagem','abandonou_dados')
+            THEN NULL ELSE 'exited' END AS encerramento_motivo,
+       CASE WHEN b.n IN (80, 81, 82) THEN 'Dermatologia'
             WHEN b.n IN (83, 84) THEN 'Ortopedia'
             WHEN b.n = 85 THEN 'Cardiologia'
             WHEN b.n = 86 THEN 'Clínico geral'
@@ -149,8 +154,8 @@ INSERT INTO tentativa (id_conversa, numero, id_especialidade, tipo_visita, resul
 SELECT p.id_conversa, 1, e.id_especialidade, p.tipo_visita,
        CASE
            WHEN p.confirma THEN 'confirmed'
-           WHEN p.categoria IN ('viu_horarios_saiu') THEN 'exited'
-           WHEN p.categoria IN ('viu_sem_horarios_saiu') THEN 'no_slots'
+           WHEN p.categoria = 'viu_horarios_saiu' THEN 'exited'
+           WHEN p.categoria = 'viu_sem_horarios_saiu' THEN 'no_slots'
            ELSE 'abandoned'
        END,
        p.inicio, p.fim
@@ -177,7 +182,7 @@ BEGIN
         IF r.confirma THEN
             SELECT h.id_horario INTO v_horario
               FROM horario h
-             WHERE h.inicio >= r.fim + interval '2 days'
+             WHERE h.inicio >= r.confirmada_em + interval '2 days'
                AND NOT EXISTS (SELECT 1 FROM reserva x
                                 WHERE x.id_horario = h.id_horario AND x.cancelada_em IS NULL)
              ORDER BY h.inicio, h.id_horario
@@ -199,8 +204,8 @@ BEGIN
             UPDATE conversa SET id_paciente = v_paciente WHERE id_conversa = r.id_conversa;
 
             INSERT INTO reserva (id_horario, id_paciente, id_conversa_origem, confirmada_em, cancelada_em)
-            VALUES (v_horario, v_paciente, r.id_conversa, r.fim,
-                    CASE WHEN r.cancela THEN r.fim + interval '2 hours' END)
+            VALUES (v_horario, v_paciente, r.id_conversa, r.confirmada_em,
+                    CASE WHEN r.cancela THEN r.confirmada_em + interval '2 hours' END)
             RETURNING id_reserva INTO v_reserva;
 
             UPDATE plano SET id_reserva = v_reserva WHERE n = r.n;
@@ -248,11 +253,11 @@ SELECT p.id_conversa, t.id_tentativa, 'SELECTED_SLOT', p.inicio, p.id_horario
  WHERE p.seleciona_horario;
 
 INSERT INTO evento_conversa (id_conversa, id_tentativa, tipo, instante, id_horario, id_reserva)
-SELECT p.id_conversa, t.id_tentativa, 'APPOINTMENT_CONFIRMED', p.fim, p.id_horario, p.id_reserva
+SELECT p.id_conversa, t.id_tentativa, 'APPOINTMENT_CONFIRMED', p.confirmada_em, p.id_horario, p.id_reserva
   FROM plano p JOIN tentativa t ON t.id_conversa = p.id_conversa
  WHERE p.confirma;
 
--- Saída explícita: com tentativa quando a conversa começou a agendar, sem tentativa caso contrário.
+-- Saída explícita (Sair): com tentativa quando a conversa começou a agendar, sem tentativa caso contrário.
 INSERT INTO evento_conversa (id_conversa, id_tentativa, tipo, instante)
 SELECT p.id_conversa, t.id_tentativa, 'EXITED', p.fim
   FROM plano p JOIN tentativa t ON t.id_conversa = p.id_conversa
@@ -272,4 +277,4 @@ SELECT p.id_conversa, t.id_tentativa, e.id_especialidade, p.inicio + make_interv
   JOIN clinica c ON c.id_clinica = e.id_clinica AND c.nome = 'Clínica Demonstração'
   CROSS JOIN LATERAL generate_series(1, p.reps_busca) AS busca(k)
  WHERE p.reps_busca > 0;
-
+`;

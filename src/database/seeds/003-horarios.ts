@@ -1,7 +1,9 @@
--- Horários de 30 minutos dentro do expediente, na janela de demonstração:
--- de 60 dias antes até 14 dias depois da data de referência (estratégia-de-datas.md).
--- Cada médico recebe a sala de mesma posição (médico 1 com sala 1, e assim por diante).
+// Horários de 30 minutos dentro do expediente, na janela de demonstração:
+// de 60 dias antes até 14 dias depois da data de referência (estratégia-de-datas.md).
+// Cada médico recebe a sala de mesma posição (médico 1 com sala 1, e assim por diante).
 
+/** Script SQL da demonstração, executado pelo runner dentro da transação de carga. */
+export const sql = String.raw`
 WITH ref AS (
     SELECT (current_setting('kenko.referencia')::timestamptz AT TIME ZONE 'America/Sao_Paulo')::date AS hoje
 ),
@@ -32,3 +34,4 @@ SELECT m.id_medico, s.id_sala, sl.inicio, sl.inicio + interval '30 minutes'
  CROSS JOIN medicos m
   JOIN salas s ON s.rn = m.rn
  ORDER BY sl.inicio, m.id_medico;
+`;

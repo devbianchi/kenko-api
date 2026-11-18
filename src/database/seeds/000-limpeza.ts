@@ -1,7 +1,9 @@
--- Remove a demonstração anterior. A trava do runner garante que a base só tem a clínica de demonstração,
--- então tudo o que existe nela é dado de demonstração. Se alguma reserva real apontar para um horário
--- da demonstração, a transação falha e nada é apagado.
+// Remove a demonstração anterior. A trava do runner garante que a base só tem a clínica de demonstração,
+// então tudo o que existe nela é dado de demonstração. Se alguma reserva real apontar para um horário
+// da demonstração, a transação falha e nada é apagado.
 
+/** Script SQL da demonstração, executado pelo runner dentro da transação de carga. */
+export const sql = String.raw`
 CREATE TEMP TABLE demo_conversas ON COMMIT DROP AS
     SELECT id_conversa, id_paciente
       FROM conversa
@@ -32,3 +34,4 @@ DELETE FROM sala;
 DELETE FROM especialidade;
 DELETE FROM expediente;
 DELETE FROM clinica;
+`;

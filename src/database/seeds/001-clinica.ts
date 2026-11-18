@@ -1,6 +1,8 @@
--- Clínica, expediente e especialidades da demonstração.
--- Domingo fechado; segunda a sexta 07h–18h; sábado 09h–13h.
+// Clínica, expediente e especialidades da demonstração.
+// Domingo fechado; segunda a sexta 07h–18h; sábado 09h–13h.
 
+/** Script SQL da demonstração, executado pelo runner dentro da transação de carga. */
+export const sql = String.raw`
 INSERT INTO clinica (nome, endereco, telefone)
 VALUES ('Clínica Demonstração', 'Rua de Exemplo, 100', '1100000000');
 
@@ -24,3 +26,4 @@ SELECT c.id_clinica, e.nome
  CROSS JOIN (VALUES ('Clínico geral'), ('Dermatologia'), ('Ortopedia'), ('Cardiologia')) AS e(nome)
  WHERE c.nome = 'Clínica Demonstração'
  ORDER BY e.nome;
+`;

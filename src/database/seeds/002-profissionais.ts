@@ -1,6 +1,8 @@
--- Médicos e salas da demonstração. Cada médico tem uma única especialidade (RN-14),
--- e cada sala é usada por um único médico, para não haver conflito de sala.
+// Médicos e salas da demonstração. Cada médico tem uma única especialidade (RN-14),
+// e cada sala é usada por um único médico, para não haver conflito de sala.
 
+/** Script SQL da demonstração, executado pelo runner dentro da transação de carga. */
+export const sql = String.raw`
 INSERT INTO medico (id_especialidade, nome_medico)
 SELECT e.id_especialidade, m.nome
   FROM (VALUES
@@ -22,3 +24,4 @@ SELECT c.id_clinica, 'Sala ' || n
  CROSS JOIN generate_series(1, 6) AS n
  WHERE c.nome = 'Clínica Demonstração'
  ORDER BY n;
+`;

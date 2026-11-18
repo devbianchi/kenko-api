@@ -21,13 +21,16 @@ export interface SlotView {
   id: string;
   startsAt: Date;
   endsAt: Date;
-  doctorName: string;
-  roomName: string;
+  doctor: { id: string; name: string };
+  room: { id: string; name: string };
 }
 
+/** Resultado da busca de horários, quando a tela depende dela. */
+export type SearchResult = 'available' | 'no_slots';
+
 export type ConversationView =
-  | { type: 'options'; options: ViewOption[] }
-  | { type: 'slots'; slots: SlotView[] }
+  | { type: 'options'; options: ViewOption[]; searchResult?: SearchResult }
+  | { type: 'slots'; searchResult: 'available'; slots: SlotView[] }
   | { type: 'closed' };
 
 export interface BotMessage {

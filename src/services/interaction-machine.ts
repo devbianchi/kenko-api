@@ -1,4 +1,5 @@
 import { AppError } from '../errors/app-error';
+import { decodeId } from '../shared/opaque-id';
 import type { InteractionInput } from '../schemas/interaction.schema';
 
 export type TipoVisita = 'primeira_consulta' | 'retorno';
@@ -8,6 +9,7 @@ export type Effect =
   | { type: 'start_attempt' }
   | { type: 'answer_specialty'; especialidadeId: number }
   | { type: 'answer_visit_kind'; tipoVisita: TipoVisita }
+  | { type: 'search_slots' }
   | { type: 'exit' };
 
 export interface Transition {
@@ -16,8 +18,10 @@ export interface Transition {
 }
 
 export interface MachineContext {
-  /** Identificadores internos das especialidades da clínica, na ordem em que aparecem na tela. */
+  /** Identificadores internos das especialidades da clínica. */
   specialtyIds: number[];
+  /** Horários já oferecidos na tentativa atual. */
+  offeredSlotIds: number[];
 }
 
 /** Opções do menu que ainda não têm fluxo nesta fase. */
@@ -35,10 +39,8 @@ function opcaoInvalida(): AppError {
 
 /** Lê o id interno de uma opção de especialidade, no formato sp_<id>. */
 function especialidadeDaOpcao(optionId: string, ctx: MachineContext): number | null {
-  const match = /^sp_([1-9][0-9]*)$/.exec(optionId);
-  if (!match) return null;
-  const id = Number(match[1]);
-  return ctx.specialtyIds.includes(id) ? id : null;
+  const id = decodeId('sp', optionId);
+  return id !== null && ctx.specialtyIds.includes(id) ? id : null;
 }
 
 /**
@@ -75,33 +77,44 @@ export function transition(step: string, input: InteractionInput, ctx: MachineCo
 
     case 'visit_kind': {
       if (input.type !== 'select_option') throw naoPermitido();
-      if (input.optionId === 'opt_first_visit') {
-        return {
-          nextStep: 'slot_selection',
-          effects: [{ type: 'answer_visit_kind', tipoVisita: 'primeira_consulta' }],
-        };
-      }
-      if (input.optionId === 'opt_return') {
-        return {
-          nextStep: 'slot_selection',
-          effects: [{ type: 'answer_visit_kind', tipoVisita: 'retorno' }],
-        };
-      }
-      throw opcaoInvalida();
+      const tipoVisita = visitaDaOpcao(input.optionId);
+      if (tipoVisita === null) throw opcaoInvalida();
+      // A busca de horários acontece nesta mesma ação. O serviço decide, pelo resultado, se o passo
+      // seguinte é a escolha de horário ou o aviso de ausência de horários.
+      return {
+        nextStep: 'slot_selection',
+        effects: [{ type: 'answer_visit_kind', tipoVisita }, { type: 'search_slots' }],
+      };
     }
 
     case 'slot_selection': {
-      // Os horários oferecidos nesta tentativa chegam na fase 5c. Até lá nenhum horário foi oferecido,
-      // então qualquer escolha de horário é recusada.
-      if (input.type === 'select_slot') {
+      if (input.type !== 'select_slot') throw naoPermitido();
+      const slotId = decodeId('slot', input.slotId);
+      if (slotId === null || !ctx.offeredSlotIds.includes(slotId)) {
         throw new AppError('INVALID_SLOT', 'Horário não oferecido nesta tentativa.', {
           slotId: 'Horário não oferecido nesta tentativa.',
         });
       }
-      throw naoPermitido();
+      // A escolha valida o horário e registra a seleção na fase 5d.
+      throw new AppError(
+        'ACTION_NOT_ALLOWED_IN_STEP',
+        'A escolha de horário ainda não está disponível.',
+      );
+    }
+
+    case 'continue_after_no_slots': {
+      if (input.type !== 'select_option') throw naoPermitido();
+      if (input.optionId !== 'opt_continue') throw opcaoInvalida();
+      return { nextStep: 'menu', effects: [] };
     }
 
     default:
       throw naoPermitido();
   }
+}
+
+function visitaDaOpcao(optionId: string): TipoVisita | null {
+  if (optionId === 'opt_first_visit') return 'primeira_consulta';
+  if (optionId === 'opt_return') return 'retorno';
+  return null;
 }

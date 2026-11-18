@@ -8,6 +8,7 @@ import { ClinicRepository } from '../repositories/clinic.repository';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import { EventRepository } from '../repositories/event.repository';
 import { RoteiroRepository } from '../repositories/roteiro.repository';
+import { SlotRepository } from '../repositories/slot.repository';
 import { ClinicService } from '../services/clinic.service';
 import { ConversationService } from '../services/conversation.service';
 import { ConversationViewBuilder } from '../services/conversation-view';
@@ -26,7 +27,8 @@ export function createApiRouter({ pool, clock }: RouteDependencies): Router {
   const clinics = new ClinicRepository(pool);
   const roteiro = new RoteiroRepository(pool);
   const conversations = new ConversationRepository(pool);
-  const views = new ConversationViewBuilder(roteiro, clinics);
+  const slots = new SlotRepository();
+  const views = new ConversationViewBuilder(pool, roteiro, clinics, slots);
 
   const clinicController = new ClinicController(new ClinicService(clinics), clock);
 
@@ -40,6 +42,7 @@ export function createApiRouter({ pool, clock }: RouteDependencies): Router {
       new AttemptRepository(),
       new EventRepository(),
       new ActionRepository(),
+      slots,
       views,
       clock,
     ),

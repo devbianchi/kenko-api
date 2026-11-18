@@ -1,4 +1,4 @@
-export type IdPrefix = 'clinic' | 'sp' | 'cv' | 'attempt' | 'slot' | 'apt';
+export type IdPrefix = 'clinic' | 'sp' | 'cv' | 'attempt' | 'slot' | 'dr' | 'room' | 'apt';
 
 /** Converte o id interno em identificador opaco da API, por exemplo cv_1. */
 export function encodeId(prefix: IdPrefix, id: number): string {

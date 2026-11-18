@@ -83,8 +83,16 @@ describe('interações do bot: pipeline, revisão, idempotência e fluxo de agen
     const visita = await request(app)
       .post(`/api/conversations/${id}/interactions`)
       .send(acao('act_3', 2, { type: 'select_option', optionId: 'opt_return' }));
-    expect(visita.body.conversation).toMatchObject({ revision: 3, step: 'slot_selection' });
-    expect(visita.body.view).toEqual({ type: 'slots', slots: [] });
+    // Sem agenda cadastrada, a busca volta vazia e o passo vai ao aviso de continuação (fase 5c).
+    expect(visita.body.conversation).toMatchObject({
+      revision: 3,
+      step: 'continue_after_no_slots',
+    });
+    expect(visita.body.view).toEqual({
+      type: 'options',
+      searchResult: 'no_slots',
+      options: [{ id: 'opt_continue', label: 'Continuar' }],
+    });
   });
 
   it('registra a tentativa, a especialidade, o tipo de visita e os eventos do funil', async () => {
@@ -109,7 +117,11 @@ describe('interações do bot: pipeline, revisão, idempotência e fluxo de agen
     const eventos = await pool.query<{ tipo: string }>(
       'SELECT tipo FROM evento_conversa ORDER BY id_evento',
     );
-    expect(eventos.rows.map((e) => e.tipo)).toEqual(['STARTED_SCHEDULING', 'ANSWERED_SPECIALTY']);
+    expect(eventos.rows.map((e) => e.tipo)).toEqual([
+      'STARTED_SCHEDULING',
+      'ANSWERED_SPECIALTY',
+      'SLOT_SEARCH_RESULT',
+    ]);
   });
 
   it('o reenvio da mesma ação devolve o mesmo resultado, sem avançar (ADR-0006)', async () => {

@@ -3,7 +3,7 @@ import { AppError } from '../../src/errors/app-error';
 import type { InteractionInput } from '../../src/schemas/interaction.schema';
 import { transition } from '../../src/services/interaction-machine';
 
-const ctx = { specialtyIds: [1, 2, 3, 4] };
+const ctx = { specialtyIds: [1, 2, 3, 4], offeredSlotIds: [] as number[] };
 const opcao = (optionId: string): InteractionInput => ({ type: 'select_option', optionId });
 
 function erro(fn: () => unknown): string {
@@ -31,15 +31,46 @@ describe('máquina de estados do roteiro', () => {
     });
   });
 
-  it('registra primeira consulta e retorno, levando à seleção de horário', () => {
+  it('registra primeira consulta e retorno, e dispara a busca de horários', () => {
     expect(transition('visit_kind', opcao('opt_first_visit'), ctx)).toEqual({
       nextStep: 'slot_selection',
-      effects: [{ type: 'answer_visit_kind', tipoVisita: 'primeira_consulta' }],
+      effects: [
+        { type: 'answer_visit_kind', tipoVisita: 'primeira_consulta' },
+        { type: 'search_slots' },
+      ],
     });
     expect(transition('visit_kind', opcao('opt_return'), ctx)).toEqual({
       nextStep: 'slot_selection',
-      effects: [{ type: 'answer_visit_kind', tipoVisita: 'retorno' }],
+      effects: [{ type: 'answer_visit_kind', tipoVisita: 'retorno' }, { type: 'search_slots' }],
     });
+  });
+
+  it('volta ao menu pela ação de continuar, sem nova busca', () => {
+    expect(transition('continue_after_no_slots', opcao('opt_continue'), ctx)).toEqual({
+      nextStep: 'menu',
+      effects: [],
+    });
+  });
+
+  it('recusa escolha de horário que não foi oferecido na tentativa (INVALID_SLOT)', () => {
+    const comOferta = { ...ctx, offeredSlotIds: [501] };
+    expect(
+      erro(() =>
+        transition('slot_selection', { type: 'select_slot', slotId: 'slot_999' }, comOferta),
+      ),
+    ).toBe('INVALID_SLOT');
+    expect(
+      erro(() => transition('slot_selection', { type: 'select_slot', slotId: 'xyz' }, comOferta)),
+    ).toBe('INVALID_SLOT');
+  });
+
+  it('ainda não confirma a escolha de um horário oferecido (fase 5d)', () => {
+    const comOferta = { ...ctx, offeredSlotIds: [501] };
+    expect(
+      erro(() =>
+        transition('slot_selection', { type: 'select_slot', slotId: 'slot_501' }, comOferta),
+      ),
+    ).toBe('ACTION_NOT_ALLOWED_IN_STEP');
   });
 
   it('encerra com Sair em qualquer passo', () => {
@@ -69,12 +100,6 @@ describe('máquina de estados do roteiro', () => {
     expect(
       erro(() => transition('specialty', { type: 'select_slot', slotId: 'slot_1' }, ctx)),
     ).toBe('ACTION_NOT_ALLOWED_IN_STEP');
-  });
-
-  it('recusa escolha de horário antes de haver horários oferecidos (INVALID_SLOT)', () => {
-    expect(
-      erro(() => transition('slot_selection', { type: 'select_slot', slotId: 'slot_501' }, ctx)),
-    ).toBe('INVALID_SLOT');
   });
 
   it('ainda não abre clínica e reservas pelo menu (fases 5e)', () => {

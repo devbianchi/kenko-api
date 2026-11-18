@@ -3,19 +3,30 @@ import { withTransaction } from '../database/transaction';
 import { AppError } from '../errors/app-error';
 import type { ActionRepository } from '../repositories/action.repository';
 import type { AttemptRepository } from '../repositories/attempt.repository';
+import type { ClinicRepository } from '../repositories/clinic.repository';
 import type { ConversationRepository } from '../repositories/conversation.repository';
 import type { EventRepository } from '../repositories/event.repository';
 import type { RoteiroRepository } from '../repositories/roteiro.repository';
-import type { ClinicRepository } from '../repositories/clinic.repository';
+import type { SlotRepository } from '../repositories/slot.repository';
 import type { InteractionBody } from '../schemas/interaction.schema';
-import { interactionDto, type InteractionDto } from '../shared/conversation-dto';
 import type { Clock } from '../shared/clock';
+import { interactionDto, type InteractionDto } from '../shared/conversation-dto';
 import { effectiveStatus } from './conversation-status';
 import type { ConversationViewBuilder } from './conversation-view';
 import { hashInput } from './interaction-hash';
 import { type Effect, transition } from './interaction-machine';
+import { selectOffers, weekBounds } from './slot-search';
 
 type Db = Pool | PoolClient;
+
+/** Resultado de um efeito: a tentativa atual e, se o efeito mudou o passo, o passo seguinte. */
+interface EffectOutcome {
+  idTentativa: number | null;
+  proximoPasso?: string;
+}
+
+/** Duração de uma semana, usada para o fim da próxima semana. */
+const UMA_SEMANA_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * Processa uma ação do paciente seguindo o ADR-0006: idempotência por actionId, depois revisão,
@@ -31,6 +42,7 @@ export class InteractionService {
     private readonly attempts: AttemptRepository,
     private readonly events: EventRepository,
     private readonly actions: ActionRepository,
+    private readonly slots: SlotRepository,
     private readonly views: ConversationViewBuilder,
     private readonly clock: Clock,
   ) {}
@@ -71,20 +83,28 @@ export class InteractionService {
         );
       }
 
-      const specialtyIds = await this.specialtyIds(client);
-      const passo = transition(conversa.step, body.input, { specialtyIds });
+      const passo = transition(conversa.step, body.input, {
+        specialtyIds: await this.specialtyIds(client),
+        offeredSlotIds:
+          conversa.attemptId === null
+            ? []
+            : await this.slots.offeredIds(conversa.attemptId, client),
+      });
 
       let idTentativa = conversa.attemptId;
+      let proximoPasso = passo.nextStep;
       for (const effect of passo.effects) {
-        idTentativa = await this.applyEffect(effect, conversationId, idTentativa, now, client);
+        const resultado = await this.applyEffect(effect, conversationId, idTentativa, now, client);
+        idTentativa = resultado.idTentativa;
+        if (resultado.proximoPasso) proximoPasso = resultado.proximoPasso;
       }
 
-      const encerrando = passo.nextStep === 'closed';
+      const encerrando = proximoPasso === 'closed';
       const aplicada = await this.conversations.updateAfterAction(client, {
         id: conversationId,
         expectedRevision: body.expectedRevision,
         instante: now,
-        idPasso: await this.roteiro.findStepId(passo.nextStep, client),
+        idPasso: await this.roteiro.findStepId(proximoPasso, client),
         idTentativaAtual: idTentativa,
         encerradaEm: encerrando ? now : null,
         encerramentoMotivo: encerrando ? 'exited' : null,
@@ -100,12 +120,12 @@ export class InteractionService {
       }
 
       await this.actions.insertPatientInteraction(conversationId, now, client);
-      const texto = await this.roteiro.findStepText(passo.nextStep, client);
+      const texto = await this.roteiro.findStepText(proximoPasso, client);
       const idMensagem = await this.conversations.insertBotInteraction(client, conversationId, now);
 
       const atualizada = await this.conversations.findById(conversationId, client);
       if (!atualizada) throw new Error('Conversa sumiu durante a ação.');
-      const view = await this.views.build(passo.nextStep, client);
+      const view = await this.views.build(proximoPasso, idTentativa, client);
       const dto = interactionDto(atualizada, effectiveStatus(atualizada, now), view, [
         { id: `msg_${idMensagem}`, author: 'bot', text: texto, sentAt: now },
       ]);
@@ -122,14 +142,13 @@ export class InteractionService {
     return especialidades.map((especialidade) => especialidade.id);
   }
 
-  /** Aplica um efeito do passo e devolve a tentativa atual, que pode ter sido criada agora. */
   private async applyEffect(
     effect: Effect,
     conversationId: number,
     idTentativa: number | null,
     now: Date,
     db: Db,
-  ): Promise<number | null> {
+  ): Promise<EffectOutcome> {
     switch (effect.type) {
       case 'start_attempt': {
         const numero = await this.attempts.nextNumber(conversationId, db);
@@ -143,8 +162,9 @@ export class InteractionService {
           },
           db,
         );
-        return id;
+        return { idTentativa: id };
       }
+
       case 'answer_specialty': {
         const tentativa = requireAttempt(idTentativa);
         await this.attempts.setSpecialty(tentativa, effect.especialidadeId, db);
@@ -158,13 +178,18 @@ export class InteractionService {
           },
           db,
         );
-        return tentativa;
+        return { idTentativa: tentativa };
       }
+
       case 'answer_visit_kind': {
         const tentativa = requireAttempt(idTentativa);
         await this.attempts.setVisitKind(tentativa, effect.tipoVisita, db);
-        return tentativa;
+        return { idTentativa: tentativa };
       }
+
+      case 'search_slots':
+        return this.searchSlots(conversationId, requireAttempt(idTentativa), now, db);
+
       case 'exit': {
         if (idTentativa !== null) {
           await this.attempts.finish(idTentativa, 'exited', now, db);
@@ -173,9 +198,54 @@ export class InteractionService {
           { idConversa: conversationId, idTentativa, tipo: 'EXITED', instante: now },
           db,
         );
-        return idTentativa;
+        return { idTentativa };
       }
     }
+  }
+
+  /**
+   * Busca os horários da tentativa (RF-02). Registra o resultado como evento. Sem horários, grava
+   * uma ocorrência de busca vazia (RN-21) e leva ao aviso de continuação. Com horários, guarda a
+   * oferta para a escolha validar depois.
+   */
+  private async searchSlots(
+    conversationId: number,
+    idTentativa: number,
+    now: Date,
+    db: Db,
+  ): Promise<EffectOutcome> {
+    const idEspecialidade = await this.attempts.findSpecialty(idTentativa, db);
+    if (idEspecialidade === null) {
+      throw new Error('Busca de horários sem especialidade escolhida.');
+    }
+
+    const { inicioProximaSemana } = weekBounds(now);
+    const fimProximaSemana = new Date(inicioProximaSemana.getTime() + UMA_SEMANA_MS);
+    const candidatos = await this.slots.findEligible(idEspecialidade, now, fimProximaSemana, db);
+    const escolhidos = selectOffers(candidatos, inicioProximaSemana);
+
+    await this.events.insert(
+      { idConversa: conversationId, idTentativa, tipo: 'SLOT_SEARCH_RESULT', instante: now },
+      db,
+    );
+
+    if (escolhidos.length === 0) {
+      await this.slots.insertSearchWithoutSlots(
+        conversationId,
+        idTentativa,
+        idEspecialidade,
+        now,
+        db,
+      );
+      return { idTentativa, proximoPasso: 'continue_after_no_slots' };
+    }
+
+    await this.slots.insertOffers(
+      idTentativa,
+      escolhidos.map((horario) => horario.id),
+      db,
+    );
+    return { idTentativa, proximoPasso: 'slot_selection' };
   }
 }
 

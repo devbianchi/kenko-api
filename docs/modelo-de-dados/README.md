@@ -5,7 +5,7 @@ Descreve o schema PostgreSQL do backend: tabelas, relacionamentos, constraints, 
 Documentos complementares:
 
 - [Diagrama](diagrama.md)
-- [Migrations](migrations.md): lista de V1 a V18, com status e motivo de cada uma
+- [Migrations](migrations.md): lista de V1 a V19, com status e motivo de cada uma
 - [Dicionário de dados](dicionario-de-dados.md): colunas, tipos e regras por tabela
 
 Decisões que sustentam este modelo: [ADR-0001](../adr/0001-postgresql.md), [ADR-0006](../adr/0006-idempotencia-e-revisao.md) e [ADR-0007](../adr/0007-indice-unico-parcial-reserva.md).

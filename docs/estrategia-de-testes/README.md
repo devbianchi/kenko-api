@@ -99,7 +99,7 @@ Estes casos precisam existir antes de a funcionalidade ser considerada pronta:
 
 **Migrations**
 - Aplicação do zero sem erro.
-- `schema_migrations` com as 18 versões, de V1 a V18, sem falhas.
+- `schema_migrations` com todas as versões do diretório, sem falhas.
 - Constraints de `UNIQUE` e `CHECK` impedem dados inválidos (teste por caso de violação).
 
 ## Cobertura

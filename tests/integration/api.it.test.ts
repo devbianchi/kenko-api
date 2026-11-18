@@ -27,11 +27,12 @@ describe('API com PostgreSQL real', () => {
     await container.stop();
   });
 
-  it('aplica as 18 migrations do zero', async () => {
+  it('aplica todas as migrations do diretório do zero', async () => {
+    const esperadas = (await loadMigrations()).length;
     const { rows } = await pool.query<{ n: number }>(
       'SELECT count(*)::int AS n FROM schema_migrations',
     );
-    expect(rows[0]?.n).toBe(18);
+    expect(rows[0]?.n).toBe(esperadas);
   });
 
   it('GET /health responde 200', async () => {

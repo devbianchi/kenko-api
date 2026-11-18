@@ -85,7 +85,7 @@ Para conferir o histórico de migrations aplicadas:
 docker compose exec db psql -U kenko -d kenko -c "SELECT version, name, applied_at FROM schema_migrations ORDER BY version;"
 ```
 
-Devem aparecer as 18 versões, de V1 a V18.
+Devem aparecer todas as versões de V1 até a última (V19 neste momento).
 
 ## Migrations falham
 

@@ -85,9 +85,10 @@ Sugestão de índices (V17): `(id_medico, inicio)` e `(id_sala, inicio)`.
 | `id_opcao` | INT | PK, identity | |
 | `id_passo` | INT | NOT NULL, FK `passo_roteiro` | Passo onde a opção aparece. |
 | `id_passo_destino` | INT | nullable, FK `passo_roteiro` | Passo seguinte. Nulo quando a ação encerra ou volta ao menu. |
-| `id_especialidade` | INT | nullable, FK `especialidade` | **Nova.** Preenchida apenas nas opções de especialidade. |
+| `id_especialidade` | INT | nullable, FK `especialidade` | **Nova.** Preenchida só quando a opção aponta para uma especialidade fixa. Na opção-modelo de especialidade (`acao = select_specialty`) fica nula, e o backend gera uma opção por especialidade cadastrada. |
+| `codigo_opcao` | VARCHAR(40) | NOT NULL, UNIQUE por `id_passo` (V19) | Identificador estável da opção no contrato, como `opt_schedule`. Adicionado em V19, porque a V8 não tinha código. |
 | `rotulo` | VARCHAR(100) | NOT NULL | |
-| `acao` | VARCHAR(30) | nullable, CHECK (`schedule`, `clinic_info`, `appointments`, `select_specialty`, `select_visit_kind`, `continue_scheduling`, `go_menu`) | **Ajustada.** Conjunto fechado definido na V8 (P2). |
+| `acao` | VARCHAR(30) | nullable, CHECK (`schedule`, `clinic_info`, `appointments`, `select_specialty`, `select_visit_kind`, `continue_scheduling`, `go_menu`) | **Ajustada.** Conjunto fechado definido na V8 (P2). `continue_scheduling` não é usado pelo roteiro atual; `opt_continue` usa `go_menu`. |
 
 ## Conversas (V9, ajustada, e novas)
 

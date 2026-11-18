@@ -4,7 +4,7 @@ API REST do sistema de atendimento e agendamento automatizado da clínica Kenko.
 
 Projeto acadêmico, desenvolvido para a disciplina interdisciplinar do segundo semestre do curso de Análise e Desenvolvimento de Sistemas. Os dados da demonstração são fictícios, mas as operações são reais: consultar disponibilidade lê o banco, confirmar cria uma reserva e os indicadores são calculados por queries.
 
-> **Estado atual:** a base da aplicação está pronta em TypeScript. Existem o endpoint de saúde (`GET /health`), `GET /api/clinic` (responde 404 enquanto a clínica não estiver cadastrada), o runner de migrations e as 18 migrations do modelo de dados. Os endpoints do bot e do painel entram nas próximas fases. Os documentos em `docs/` descrevem o comportamento esperado.
+> **Estado atual:** a base da aplicação está pronta em TypeScript. Existem o endpoint de saúde (`GET /health`), `GET /api/clinic` (responde 404 enquanto a clínica não estiver cadastrada), o runner de migrations e as migrations do modelo de dados e do roteiro do bot. Os endpoints do bot e do painel entram nas próximas fases. Os documentos em `docs/` descrevem o comportamento esperado.
 
 ## Sumário
 
@@ -64,7 +64,7 @@ kenko-api/
     controllers/         adaptam HTTP ao serviço e respondem com o envelope
     database/
       migrate.ts         aplica as migrations pendentes e registra em schema_migrations
-      migrations/        V1 a V18, modelo de dados em SQL
+      migrations/        V1 a V19: modelo de dados e roteiro do bot em SQL
     errors/              AppError e catálogo de códigos com status HTTP
     middlewares/         tratamento central de erros
     models/              tipos dos dados como estão no banco

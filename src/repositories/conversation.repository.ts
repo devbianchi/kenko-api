@@ -35,6 +35,60 @@ function toRecord(row: ConversationRow): ConversationRecord {
 export class ConversationRepository {
   constructor(private readonly pool: Pool) {}
 
+  /**
+   * Trava a linha da conversa até o fim da transação, para que ações concorrentes sejam
+   * serializadas. Só trava a linha de conversa: com join, o PostgreSQL pode devolver vazio depois
+   * de esperar o lock. Devolve false quando a conversa não existe.
+   */
+  async lock(id: number, db: Queryable): Promise<boolean> {
+    const { rows } = await db.query<{ id: number }>(
+      'SELECT id_conversa AS id FROM conversa WHERE id_conversa = $1 FOR UPDATE',
+      [id],
+    );
+    return rows.length === 1;
+  }
+
+  /**
+   * Aplica uma ação aceita: incrementa a revisão somente se ela ainda for a esperada (ADR-0006).
+   * Devolve false quando a revisão mudou.
+   */
+  async updateAfterAction(
+    db: Queryable,
+    atualizacao: {
+      id: number;
+      expectedRevision: number;
+      instante: Date;
+      idPasso: number;
+      idTentativaAtual: number | null;
+      encerradaEm: Date | null;
+      encerramentoMotivo: string | null;
+      encerramentoEtapa: string | null;
+    },
+  ): Promise<boolean> {
+    const { rowCount } = await db.query(
+      `UPDATE conversa
+          SET revisao = revisao + 1,
+              ultima_interacao = $3,
+              id_passo_atual = $4,
+              id_tentativa_atual = COALESCE($5, id_tentativa_atual),
+              encerrada_em = COALESCE($6, encerrada_em),
+              encerramento_motivo = COALESCE($7, encerramento_motivo),
+              encerramento_etapa = COALESCE($8, encerramento_etapa)
+        WHERE id_conversa = $1 AND revisao = $2`,
+      [
+        atualizacao.id,
+        atualizacao.expectedRevision,
+        atualizacao.instante,
+        atualizacao.idPasso,
+        atualizacao.idTentativaAtual,
+        atualizacao.encerradaEm,
+        atualizacao.encerramentoMotivo,
+        atualizacao.encerramentoEtapa,
+      ],
+    );
+    return rowCount === 1;
+  }
+
   async findById(id: number, db: Queryable = this.pool): Promise<ConversationRecord | null> {
     const { rows } = await db.query<ConversationRow>(
       `${SELECT_CONVERSA} WHERE c.id_conversa = $1`,

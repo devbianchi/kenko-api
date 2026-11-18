@@ -1,26 +1,19 @@
 import type { Request, Response } from 'express';
 import { AppError } from '../errors/app-error';
-import type { ConversationRecord, EffectiveStatus } from '../models/conversation.model';
 import type { ConversationService, ConversationState } from '../services/conversation.service';
-import { createConversationSchema, MAX_IDS_PER_LIST } from '../schemas/conversation.schema';
+import type { InteractionService } from '../services/interaction.service';
+import { MAX_IDS_PER_LIST, createConversationSchema } from '../schemas/conversation.schema';
+import { interactionBodySchema } from '../schemas/interaction.schema';
+import {
+  availableActions,
+  conversationBody,
+  messageBody,
+  viewBody,
+} from '../shared/conversation-dto';
 import { envelope } from '../shared/envelope';
 import type { Clock } from '../shared/clock';
 import { toBusinessIso } from '../shared/business-time';
 import { decodeId, encodeId } from '../shared/opaque-id';
-
-function availableActions(status: EffectiveStatus): string[] {
-  return status === 'active' ? ['exit'] : [];
-}
-
-function conversationBody(record: ConversationRecord, status: EffectiveStatus) {
-  return {
-    id: encodeId('cv', record.id),
-    effectiveStatus: status,
-    revision: record.revision,
-    step: record.step,
-    attemptId: record.attemptId === null ? null : encodeId('attempt', record.attemptId),
-  };
-}
 
 function parseCreateBody(body: unknown): { contactId: string } {
   const parsed = createConversationSchema.safeParse(body);
@@ -34,6 +27,21 @@ function parseCreateBody(body: unknown): { contactId: string } {
   }
   throw new AppError('INVALID_INPUT_TYPE', 'contactId inválido.', {
     contactId: 'Texto de 1 a 64 caracteres.',
+  });
+}
+
+function parseInteractionBody(body: unknown) {
+  const parsed = interactionBodySchema.safeParse(body);
+  if (parsed.success) return parsed.data;
+
+  const campos = typeof body === 'object' && body !== null ? body : {};
+  const faltando = ['actionId', 'expectedRevision', 'input'].filter((c) => !(c in campos));
+  if (faltando.length > 0) {
+    const fields = Object.fromEntries(faltando.map((campo) => [campo, 'Obrigatório.']));
+    throw new AppError('MISSING_PARAMETER', 'Campo obrigatório ausente.', fields);
+  }
+  throw new AppError('INVALID_INPUT_TYPE', 'Ação inválida para o tipo informado.', {
+    input: 'Tipo ou campos inválidos.',
   });
 }
 
@@ -61,10 +69,19 @@ function parseIds(raw: unknown): number[] {
   return [...new Set(ids as number[])];
 }
 
-/** Adapta HTTP ao serviço: valida a entrada, chama o serviço e responde no formato do contrato. */
+function conversationIdParam(req: Request): number {
+  const id = decodeId('cv', String(req.params.id));
+  if (id === null) {
+    throw new AppError('CONVERSATION_NOT_FOUND', 'Conversa não encontrada.');
+  }
+  return id;
+}
+
+/** Adapta HTTP aos serviços: valida a entrada, chama o serviço e responde no formato do contrato. */
 export class ConversationController {
   constructor(
     private readonly service: ConversationService,
+    private readonly interactions: InteractionService,
     private readonly clock: Clock,
   ) {}
 
@@ -75,23 +92,14 @@ export class ConversationController {
 
     res.status(result.created ? 201 : 200).json({
       conversation: conversationBody(result.state.record, status),
-      messages: result.messages.map((message) => ({
-        id: message.id,
-        author: message.author,
-        text: message.text,
-        sentAt: toBusinessIso(message.sentAt),
-      })),
-      view: result.state.view,
+      messages: result.messages.map(messageBody),
+      view: viewBody(result.state.view),
       availableActions: availableActions(status),
     });
   };
 
   get = async (req: Request, res: Response): Promise<void> => {
-    const id = decodeId('cv', String(req.params.id));
-    if (id === null) {
-      throw new AppError('CONVERSATION_NOT_FOUND', 'Conversa não encontrada.');
-    }
-    const state: ConversationState = await this.service.get(id);
+    const state: ConversationState = await this.service.get(conversationIdParam(req));
     res.json(this.detail(state));
   };
 
@@ -110,6 +118,13 @@ export class ConversationController {
     );
   };
 
+  interact = async (req: Request, res: Response): Promise<void> => {
+    const id = conversationIdParam(req);
+    const body = parseInteractionBody(req.body);
+    const dto = await this.interactions.process(id, body);
+    res.status(200).json(dto);
+  };
+
   private detail(state: ConversationState) {
     const { record, status, view } = state;
     return {
@@ -118,7 +133,7 @@ export class ConversationController {
         startedAt: toBusinessIso(record.startedAt),
         lastInteractionAt: toBusinessIso(record.lastInteractionAt),
       },
-      view,
+      view: viewBody(view),
       availableActions: availableActions(status),
     };
   }

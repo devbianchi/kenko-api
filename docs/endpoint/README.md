@@ -630,6 +630,13 @@ GET /api/conversations/cv_1/appointments
 
 `options`, `slots`, `patient_form`, `appointments`, `clinic_information`, `closed`. O backend não retorna HTML nem estruturas de tela livres.
 
+**Estado da implementação (fase 5b)**
+
+- As opções de especialidade têm identificador `sp_<id>`, o mesmo das especialidades da clínica. Os exemplos acima usam nomes ilustrativos.
+- Depois da visita, a tela de horários (`view.type = slots`) ainda vem vazia. A busca de horários entra na fase 5c.
+- Ações de consulta de reservas, de informações da clínica e de identificação do paciente retornam 422 `ACTION_NOT_ALLOWED_IN_STEP` até as fases 5d e 5e.
+- Ações concorrentes da mesma conversa são serializadas por lock da linha. Um reenvio que chega depois da primeira execução recebe o resultado guardado.
+
 **Fluxo completo de agendamento**
 
 | Ordem | Ação | `expectedRevision` | Resultado |

@@ -16,7 +16,19 @@ export interface ViewOption {
   label: string;
 }
 
-export type ConversationView = { type: 'options'; options: ViewOption[] } | { type: 'closed' };
+/** Horário oferecido numa tentativa. A busca que preenche esta lista entra na fase 5c. */
+export interface SlotView {
+  id: string;
+  startsAt: Date;
+  endsAt: Date;
+  doctorName: string;
+  roomName: string;
+}
+
+export type ConversationView =
+  | { type: 'options'; options: ViewOption[] }
+  | { type: 'slots'; slots: SlotView[] }
+  | { type: 'closed' };
 
 export interface BotMessage {
   id: string;

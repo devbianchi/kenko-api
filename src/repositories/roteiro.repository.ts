@@ -27,6 +27,17 @@ export class RoteiroRepository {
     return row.codigo;
   }
 
+  /** Etapa analítica de um passo (campo etapa), usada como etapa de encerramento. */
+  async findStepEtapa(codigoPasso: string, db: Queryable = this.pool): Promise<string> {
+    const { rows } = await db.query<{ etapa: string }>(
+      'SELECT etapa FROM passo_roteiro WHERE codigo_passo = $1',
+      [codigoPasso],
+    );
+    const row = rows[0];
+    if (!row) throw new Error(`Passo de roteiro inexistente: ${codigoPasso}`);
+    return row.etapa;
+  }
+
   async findStepText(codigoPasso: string, db: Queryable = this.pool): Promise<string> {
     const { rows } = await db.query<{ texto: string }>(
       'SELECT texto FROM passo_roteiro WHERE codigo_passo = $1',

@@ -1,4 +1,4 @@
-import type { Pool } from 'pg';
+import type { Pool, PoolClient } from 'pg';
 import type { ClinicRecord, DaySchedule, SpecialtyRecord } from '../models/clinic.model';
 
 interface ClinicRow {
@@ -23,8 +23,8 @@ interface SpecialtyRow {
 export class ClinicRepository {
   constructor(private readonly pool: Pool) {}
 
-  async findFirst(): Promise<ClinicRecord | null> {
-    const { rows } = await this.pool.query<ClinicRow>(
+  async findFirst(db: Pool | PoolClient = this.pool): Promise<ClinicRecord | null> {
+    const { rows } = await db.query<ClinicRow>(
       'SELECT id_clinica, nome, endereco, telefone FROM clinica ORDER BY id_clinica LIMIT 1',
     );
     const row = rows[0];
@@ -52,8 +52,11 @@ export class ClinicRepository {
     }));
   }
 
-  async findSpecialties(clinicId: number): Promise<SpecialtyRecord[]> {
-    const { rows } = await this.pool.query<SpecialtyRow>(
+  async findSpecialties(
+    clinicId: number,
+    db: Pool | PoolClient = this.pool,
+  ): Promise<SpecialtyRecord[]> {
+    const { rows } = await db.query<SpecialtyRow>(
       `SELECT id_especialidade, nome_especialidade
          FROM especialidade
         WHERE id_clinica = $1

@@ -1,8 +1,18 @@
 import type { Pool } from 'pg';
 
-/** Apaga a clínica e tudo que depende dela, e reinicia as sequências. Usado antes de cada teste. */
+/**
+ * Apaga as conversas e os cadastros da clínica, e reinicia as sequências. Usado antes de cada teste.
+ * Não usa TRUNCATE CASCADE em clinica: o cascata passaria por especialidade e apagaria o roteiro
+ * (opcao_roteiro referencia especialidade).
+ */
 export async function resetClinica(pool: Pool): Promise<void> {
-  await pool.query('TRUNCATE clinica RESTART IDENTITY CASCADE');
+  await pool.query('TRUNCATE conversa RESTART IDENTITY CASCADE');
+  await pool.query('DELETE FROM horario');
+  await pool.query('DELETE FROM medico');
+  await pool.query('DELETE FROM sala');
+  await pool.query('DELETE FROM especialidade');
+  await pool.query('DELETE FROM expediente');
+  await pool.query('DELETE FROM clinica');
 }
 
 /**

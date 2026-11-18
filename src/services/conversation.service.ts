@@ -8,6 +8,10 @@ import type {
   EffectiveStatus,
 } from '../models/conversation.model';
 import type { ConversationRepository } from '../repositories/conversation.repository';
+import type {
+  ReservationRepository,
+  ReservaDaConversa,
+} from '../repositories/reservation.repository';
 import type { RoteiroRepository } from '../repositories/roteiro.repository';
 import type { Clock } from '../shared/clock';
 import { effectiveStatus } from './conversation-status';
@@ -35,6 +39,7 @@ export class ConversationService {
     private readonly conversations: ConversationRepository,
     private readonly roteiro: RoteiroRepository,
     private readonly views: ConversationViewBuilder,
+    private readonly reservations: ReservationRepository,
     private readonly clock: Clock,
   ) {}
 
@@ -94,11 +99,34 @@ export class ConversationService {
     });
   }
 
+  /** Reservas da conversa, com status e permissão de cancelamento. Não renova a atividade. */
+  async listAppointments(
+    id: number,
+  ): Promise<{ reserva: ReservaDaConversa; status: EffectiveStatus }[]> {
+    const record = await this.conversations.findById(id);
+    if (!record) {
+      throw new AppError('CONVERSATION_NOT_FOUND', 'Conversa não encontrada.');
+    }
+    const now = this.clock.now();
+    const status = effectiveStatus(record, now);
+    const reservas = await this.reservations.findByConversation(id, this.pool);
+    return reservas.map((reserva) => ({ reserva, status }));
+  }
+
   async state(record: ConversationRecord, now: Date, db?: Db): Promise<ConversationState> {
     return {
       record,
       status: effectiveStatus(record, now),
-      view: await this.views.build(record.step, record.attemptId, db),
+      view: await this.views.build(
+        record.step,
+        {
+          conversationId: record.id,
+          attemptId: record.attemptId,
+          agora: now,
+          ativa: effectiveStatus(record, now) === 'active',
+        },
+        db,
+      ),
     };
   }
 }

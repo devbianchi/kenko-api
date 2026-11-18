@@ -17,11 +17,13 @@ import type { Clock } from '../shared/clock';
 import { toBusinessIso } from '../shared/business-time';
 import {
   type ActionOutcome,
+  type AppointmentCancelledResult,
   type AppointmentResult,
   interactionDto,
   slotUnavailableBody,
 } from '../shared/conversation-dto';
 import { encodeId } from '../shared/opaque-id';
+import { appointmentStatus } from './appointment-status';
 import { effectiveStatus } from './conversation-status';
 import type { ConversationViewBuilder } from './conversation-view';
 import { hashInput } from './interaction-hash';
@@ -39,7 +41,7 @@ interface Progresso {
   proximoPasso: string;
   idPaciente: number | null;
   limparTentativa: boolean;
-  resultado: AppointmentResult | null;
+  resultado: AppointmentResult | AppointmentCancelledResult | null;
 }
 
 /**
@@ -179,7 +181,16 @@ export class InteractionService {
     const mensagens = await this.mensagensDoPasso(conversationId, progresso, now, client);
     const atualizada = await this.conversations.findById(conversationId, client);
     if (!atualizada) throw new Error('Conversa sumiu durante a ação.');
-    const view = await this.views.build(progresso.proximoPasso, progresso.idTentativa, client);
+    const view = await this.views.build(
+      progresso.proximoPasso,
+      {
+        conversationId,
+        attemptId: progresso.idTentativa,
+        agora: now,
+        ativa: effectiveStatus(atualizada, now) === 'active',
+      },
+      client,
+    );
 
     const dto = interactionDto(
       atualizada,
@@ -274,6 +285,11 @@ export class InteractionService {
         return;
       }
 
+      case 'cancel_appointment': {
+        await this.cancelAppointment(effect.reservaId, conversa, progresso, now, db);
+        return;
+      }
+
       case 'exit': {
         if (progresso.idTentativa !== null) {
           await this.attempts.finish(progresso.idTentativa, 'exited', now, db);
@@ -349,6 +365,35 @@ export class InteractionService {
     };
   }
 
+  /**
+   * Cancela uma reserva pendente da própria conversa (RN-18). A reserva de outra conversa é 404,
+   * porque não se confirma a existência dela. Completa ou já cancelada é 409. Não apaga a
+   * confirmação; o horário volta a ser oferecido na próxima busca, se ainda for futuro.
+   */
+  private async cancelAppointment(
+    reservaId: number,
+    conversa: ConversationRecord,
+    progresso: Progresso,
+    now: Date,
+    db: Db,
+  ): Promise<void> {
+    const reserva = await this.reservations.findById(reservaId, db);
+    if (!reserva || reserva.idConversaOrigem !== conversa.id) {
+      throw new AppError('APPOINTMENT_NOT_FOUND', 'Agendamento não encontrado nesta conversa.');
+    }
+    const status = appointmentStatus({ canceladaEm: reserva.canceladaEm, fim: reserva.fim }, now);
+    if (status !== 'pending') {
+      throw new AppError('APPOINTMENT_NOT_CANCELLABLE', 'Esta consulta não pode ser cancelada.');
+    }
+
+    await this.reservations.cancel(reservaId, now, db);
+    progresso.proximoPasso = 'menu';
+    progresso.resultado = {
+      type: 'appointment_cancelled',
+      appointmentId: encodeId('ap', reservaId),
+    };
+  }
+
   /** Textos do passo seguinte. Depois de uma confirmação, vêm a confirmação e o menu. */
   private async mensagensDoPasso(
     conversationId: number,
@@ -356,7 +401,10 @@ export class InteractionService {
     now: Date,
     db: Db,
   ): Promise<BotMessage[]> {
-    const codigos = progresso.resultado ? ['confirmation', 'menu'] : [progresso.proximoPasso];
+    const codigos =
+      progresso.resultado?.type === 'appointment_confirmed'
+        ? ['confirmation', 'menu']
+        : [progresso.proximoPasso];
     const mensagens: BotMessage[] = [];
     for (const codigo of codigos) {
       const texto = await this.roteiro.findStepText(codigo, db);
@@ -403,7 +451,11 @@ export class InteractionService {
     const idMensagem = await this.conversations.insertBotInteraction(client, conversa.id, now);
     const atualizada = await this.conversations.findById(conversa.id, client);
     if (!atualizada) throw new Error('Conversa sumiu durante a disputa de horário.');
-    const view = await this.views.build(proximoPasso, tentativa, client);
+    const view = await this.views.build(
+      proximoPasso,
+      { conversationId: conversa.id, attemptId: tentativa, agora: now, ativa: true },
+      client,
+    );
 
     const dto = interactionDto(
       atualizada,

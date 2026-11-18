@@ -17,6 +17,7 @@ export type Effect =
   | { type: 'search_slots' }
   | { type: 'select_slot'; horarioId: number }
   | { type: 'confirm_appointment'; paciente: DadosPaciente | null }
+  | { type: 'cancel_appointment'; reservaId: number }
   | { type: 'exit' };
 
 export interface Transition {
@@ -34,9 +35,6 @@ export interface MachineContext {
   /** Data de hoje em Brasília, no formato AAAA-MM-DD. Não aceita nascimento depois dela. */
   hojeLocal: string;
 }
-
-/** Opções do menu que ainda não têm fluxo nesta fase. */
-const OPCOES_AINDA_NAO_DISPONIVEIS = new Set(['opt_clinic_info', 'opt_appointments']);
 
 const DATA_ISO = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -107,8 +105,11 @@ export function transition(step: string, input: InteractionInput, ctx: MachineCo
       if (input.optionId === 'opt_schedule') {
         return { nextStep: 'specialty', effects: [{ type: 'start_attempt' }] };
       }
-      if (OPCOES_AINDA_NAO_DISPONIVEIS.has(input.optionId)) {
-        throw new AppError('ACTION_NOT_ALLOWED_IN_STEP', 'Esta opção ainda não está disponível.');
+      if (input.optionId === 'opt_clinic_info') {
+        return { nextStep: 'clinic_information', effects: [] };
+      }
+      if (input.optionId === 'opt_appointments') {
+        return { nextStep: 'appointments', effects: [] };
       }
       throw opcaoInvalida();
     }
@@ -163,6 +164,25 @@ export function transition(step: string, input: InteractionInput, ctx: MachineCo
         nextStep: 'menu',
         effects: [{ type: 'confirm_appointment', paciente }],
       };
+    }
+
+    case 'clinic_information': {
+      if (input.type !== 'select_option') throw naoPermitido();
+      if (input.optionId !== 'opt_menu') throw opcaoInvalida();
+      return { nextStep: 'menu', effects: [] };
+    }
+
+    case 'appointments': {
+      if (input.type === 'cancel_appointment') {
+        const reservaId = decodeId('ap', input.appointmentId);
+        if (reservaId === null) {
+          throw new AppError('APPOINTMENT_NOT_FOUND', 'Agendamento não encontrado nesta conversa.');
+        }
+        return { nextStep: 'menu', effects: [{ type: 'cancel_appointment', reservaId }] };
+      }
+      if (input.type !== 'select_option') throw naoPermitido();
+      if (input.optionId !== 'opt_menu') throw opcaoInvalida();
+      return { nextStep: 'menu', effects: [] };
     }
 
     case 'continue_after_no_slots': {

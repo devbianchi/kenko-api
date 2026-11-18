@@ -37,8 +37,8 @@ export class ClinicRepository {
     };
   }
 
-  async findSchedule(clinicId: number): Promise<DaySchedule[]> {
-    const { rows } = await this.pool.query<ScheduleRow>(
+  async findSchedule(clinicId: number, db: Pool | PoolClient = this.pool): Promise<DaySchedule[]> {
+    const { rows } = await db.query<ScheduleRow>(
       `SELECT dia_semana, abertura, fechamento
          FROM expediente
         WHERE id_clinica = $1

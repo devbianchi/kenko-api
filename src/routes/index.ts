@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import type { Pool } from 'pg';
+import { CalendarController } from '../controllers/calendar.controller';
 import { ClinicController } from '../controllers/clinic.controller';
 import { ConversationController } from '../controllers/conversation.controller';
 import { ActionRepository } from '../repositories/action.repository';
 import { AttemptRepository } from '../repositories/attempt.repository';
+import { CalendarRepository } from '../repositories/calendar.repository';
 import { ClinicRepository } from '../repositories/clinic.repository';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import { EventRepository } from '../repositories/event.repository';
@@ -11,11 +13,13 @@ import { PatientRepository } from '../repositories/patient.repository';
 import { ReservationRepository } from '../repositories/reservation.repository';
 import { RoteiroRepository } from '../repositories/roteiro.repository';
 import { SlotRepository } from '../repositories/slot.repository';
+import { CalendarService } from '../services/calendar.service';
 import { ClinicService } from '../services/clinic.service';
 import { ConversationService } from '../services/conversation.service';
 import { ConversationViewBuilder } from '../services/conversation-view';
 import { InteractionService } from '../services/interaction.service';
 import type { Clock } from '../shared/clock';
+import { createCalendarRouter } from './calendar.routes';
 import { createClinicRouter } from './clinic.routes';
 import { createConversationRouter } from './conversation.routes';
 
@@ -55,7 +59,13 @@ export function createApiRouter({ pool, clock }: RouteDependencies): Router {
     clock,
   );
 
+  const calendarController = new CalendarController(
+    new CalendarService(pool, new CalendarRepository(), clock),
+    clock,
+  );
+
   const router = Router();
+  router.use('/calendar', createCalendarRouter(calendarController));
   router.use('/clinic', createClinicRouter(clinicController));
   router.use('/conversations', createConversationRouter(conversationController));
   return router;

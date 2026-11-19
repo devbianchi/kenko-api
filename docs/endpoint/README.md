@@ -415,7 +415,10 @@ Os blocos `funnel`, `conversationEndings`, `durationDistribution`, `conversation
 
 **Estado da implementação (fase 8a)**
 
-- `GET /api/analytics` entrega `meta.period`, `meta.previousPeriod`, os cinco KPIs de `data.kpis`, o `funnel` e os `conversationEndings`. Os blocos `durationDistribution`, `conversationHeatmap`, `completionSeries` e `searchesWithoutSlotsBySpecialty` ainda não existem; entram na fase 8c.
+- `GET /api/analytics` entrega `meta.period`, `meta.previousPeriod`, `data.kpis`, `data.funnel`, `data.conversationEndings`, `data.durationDistribution`, `data.conversationHeatmap`, `data.completionSeries` e `data.searchesWithoutSlotsBySpecialty`. Com isso, o contrato de Analytics está completo.
+- A duração do histograma e do P90 usa as mesmas conversas da mediana: uma por conversa confirmada. O P90 é a posição `ceil(0,90 × N)`. Sem amostras, as estatísticas são `null`.
+- A série de conclusão segue o filtro: dias na semana, blocos 1–7, 8–14, 15–21, 22–28 e 29–fim no mês, e meses no ano. A média móvel usa os três últimos pontos calculáveis; sem base, o valor é `null`.
+- O mapa de calor conta inícios de conversa em 7 dias e 12 faixas de duas horas, inclusive fora do expediente. As buscas sem horário por especialidade somam o KPI do mesmo período.
 - O funil conta conversas distintas que escolheram Agendar, por marco do roteiro. Os términos têm as quatro etapas `triage`, `slot_selection`, `patient_data` e `confirmation`. Saída usa a etapa gravada ao sair; abandono usa a etapa atual, com mais de uma hora de inatividade. Menu fica fora.
 - O período anterior tem a mesma duração e termina onde o atual começa. Em semana são sete dias; em mês, o mesmo número de dias (no exemplo de outubro, o anterior começa em 31/08); em ano, o mesmo número de meses, para que o ano anterior seja comparado com o ano inteiro anterior, mesmo em anos bissextos.
 - Valores em porcentagem e em segundos não são arredondados na API. Sem base, o valor é `null`, não zero.

@@ -1,7 +1,10 @@
+import { encodeId } from '../shared/opaque-id';
 import type { AnalyticsRepository } from '../repositories/analytics.repository';
 import { dataLocal } from '../shared/datas';
 import { buildAnalyticsKpis } from './analytics-kpis';
 import { buildEndings, buildFunnel } from './analytics-funnel';
+import { buildDurationDistribution, buildHeatmap } from './analytics-distribution';
+import { buildCompletionSeries } from './analytics-series';
 import { localMidnight, resolveAnalyticsPeriod } from './analytics-period';
 
 /** Leituras de Analytics. Não altera nada: o instante de avaliação vem de quem chama, uma vez por requisição. */
@@ -15,11 +18,14 @@ export class AnalyticsService {
     const previousInicio = localMidnight(resolved.previousStart);
     const previousFim = localMidnight(resolved.previousEndExclusive);
 
-    const [current, previous, funnel, endings] = await Promise.all([
+    const [current, previous, funnel, endings, heatmap, daily, searches] = await Promise.all([
       this.analytics.facts(inicio, fim, now),
       this.analytics.facts(previousInicio, previousFim, now),
       this.analytics.funnel(inicio, fim, now),
       this.analytics.endings(inicio, fim, now),
+      this.analytics.heatmap(inicio, fim, now),
+      this.analytics.dailyCompletion(inicio, fim, now),
+      this.analytics.searchesBySpecialty(inicio, fim, now),
     ]);
 
     return {
@@ -33,9 +39,24 @@ export class AnalyticsService {
         start: previousInicio,
         endExclusive: previousFim,
       },
-      kpis: buildAnalyticsKpis(current, previous),
-      funnel: buildFunnel(funnel),
-      conversationEndings: buildEndings(endings),
+      data: {
+        kpis: buildAnalyticsKpis(current, previous),
+        funnel: buildFunnel(funnel),
+        conversationEndings: buildEndings(endings),
+        durationDistribution: buildDurationDistribution(current.durationsSeconds),
+        conversationHeatmap: buildHeatmap(heatmap),
+        completionSeries: buildCompletionSeries(
+          resolved.type,
+          resolved.start,
+          resolved.endExclusive,
+          daily,
+        ),
+        searchesWithoutSlotsBySpecialty: searches.map((row) => ({
+          specialtyId: encodeId('sp', row.id),
+          name: row.name,
+          count: row.count,
+        })),
+      },
     };
   }
 }

@@ -22,7 +22,7 @@ O serviço está pronto quando o log mostra `database system is ready to accept 
 | Parâmetro | Valor |
 |---|---|
 | Host | `localhost` |
-| Porta | `5432` |
+| Porta | `5432`, ou o valor de `KENKO_DB_PORT` no `.env` |
 | Banco | `kenko` |
 | Usuário | `kenko` |
 | Senha | `kenko` |
@@ -49,7 +49,7 @@ services:
       POSTGRES_USER: kenko
       POSTGRES_PASSWORD: kenko
     ports:
-      - "5432:5432"
+      - "${KENKO_DB_PORT:-5432}:5432"
     volumes:
       - kenko-db:/var/lib/postgresql/data
 
@@ -104,6 +104,7 @@ Mensagens comuns e o que significam:
 | `Versão de migration duplicada` | Dois arquivos com o mesmo número `V<n>`. | Renomeie para o próximo número livre. Nunca reutilize um número já aplicado. |
 | `password authentication failed` | `DATABASE_URL` com senha diferente da do container. | Confira o `.env` com o `compose.yaml`. |
 | `ECONNREFUSED` | Container do banco parado. | `docker compose up -d db`. |
+| `role "kenko" does not exist` | Outro PostgreSQL já usa a porta 5432 (por exemplo, o instalado no sistema), e a API conecta nele em vez do container. | No `.env`, defina `KENKO_DB_PORT=5433` e use `localhost:5433` na `DATABASE_URL`. Depois rode `docker compose up -d db`, que recria o container na porta nova. |
 
 Uma migration já aplicada em ambiente compartilhado nunca é editada. A correção vira uma nova versão.
 
@@ -111,7 +112,7 @@ Uma migration já aplicada em ambiente compartilhado nunca é editada. A correç
 
 Os testes de integração criam o próprio container do PostgreSQL pelo Testcontainers. Eles:
 
-- não usam o banco da porta 5432;
+- não usam o banco do `docker compose`;
 - não alteram os dados do `docker compose`;
 - aplicam as migrations do zero em cada suíte.
 

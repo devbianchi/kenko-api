@@ -12,6 +12,7 @@ Credenciais nunca são versionadas. O arquivo `.env.example` mostra as chaves, s
 | `PORT` | não | `8080` | Porta HTTP. |
 | `CORS_ALLOWED_ORIGINS` | não | `http://localhost:5173` | Origens do frontend, separadas por vírgula ([ADR-0008](../adr/0008-cors-e-origem-do-frontend.md)). |
 | `NODE_ENV` | não | `development` | `development`, `test` ou `production`. |
+| `KENKO_DB_PORT` | não | `5432` | Porta do banco do `docker compose` no seu computador. Lida pelo `compose.yaml`, não pela API: ao trocá-la, use a mesma porta na `DATABASE_URL`. |
 
 Não há valor padrão para `DATABASE_URL`. Se ela estiver ausente, a aplicação falha com `Configuração inválida: DATABASE_URL: ...`. Isso é intencional: evita subir apontando para um banco inesperado.
 

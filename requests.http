@@ -1,0 +1,187 @@
+# Kenko API: fluxo completo para demonstração.
+# Abra com a extensão REST Client do VS Code. Rode as requisições de cima para baixo.
+# As requisições nomeadas (# @name) passam dados para as seguintes: não pule etapas.
+# Os ids de horário, de reserva e de paciente mudam a cada carga: nada é fixado aqui.
+# As datas do painel são calculadas pelo REST Client a partir do dia de hoje; a carga de demonstração é relativa a esse dia.
+
+@host = http://localhost:8080
+@baseUrl = {{host}}/api
+
+### 1. Saúde da API
+GET {{host}}/health
+
+### 2. Clínica e especialidades (de onde vêm os ids de especialidade)
+# @name clinica
+GET {{baseUrl}}/clinic
+
+### 3. Cria a conversa do bot com um contato novo
+# @name criar
+POST {{baseUrl}}/conversations
+Content-Type: application/json
+
+{
+  "contactId": "{{$guid}}"
+}
+
+### 4. Lê a conversa com o estado efetivo
+GET {{baseUrl}}/conversations/{{criar.response.body.$.conversation.id}}
+
+### 5. Escolhe "Agendar uma consulta" no menu
+# @name agendar
+POST {{baseUrl}}/conversations/{{criar.response.body.$.conversation.id}}/interactions
+Content-Type: application/json
+
+{
+  "actionId": "{{$guid}}",
+  "expectedRevision": {{criar.response.body.$.conversation.revision}},
+  "input": {"type": "select_option", "optionId": "opt_schedule"}
+}
+
+### 6. Escolhe a especialidade (Dermatologia, o terceiro item da clínica)
+# @name especialidade
+POST {{baseUrl}}/conversations/{{criar.response.body.$.conversation.id}}/interactions
+Content-Type: application/json
+
+{
+  "actionId": "{{$guid}}",
+  "expectedRevision": {{agendar.response.body.$.conversation.revision}},
+  "input": {"type": "select_option", "optionId": "{{clinica.response.body.$.data.specialties[2].id}}"}
+}
+
+### 7. Escolhe primeira consulta: a resposta traz até três horários
+# @name visita
+POST {{baseUrl}}/conversations/{{criar.response.body.$.conversation.id}}/interactions
+Content-Type: application/json
+
+{
+  "actionId": "{{$guid}}",
+  "expectedRevision": {{especialidade.response.body.$.conversation.revision}},
+  "input": {"type": "select_option", "optionId": "opt_first_visit"}
+}
+
+### 8. Escolhe o primeiro horário oferecido
+# @name horario
+POST {{baseUrl}}/conversations/{{criar.response.body.$.conversation.id}}/interactions
+Content-Type: application/json
+
+{
+  "actionId": "{{$guid}}",
+  "expectedRevision": {{visita.response.body.$.conversation.revision}},
+  "input": {"type": "select_slot", "slotId": "{{visita.response.body.$.view.slots[0].id}}"}
+}
+
+### 9. Informa nome e nascimento do paciente: a reserva é confirmada
+# @name paciente
+POST {{baseUrl}}/conversations/{{criar.response.body.$.conversation.id}}/interactions
+Content-Type: application/json
+
+{
+  "actionId": "{{$guid}}",
+  "expectedRevision": {{horario.response.body.$.conversation.revision}},
+  "input": {
+    "type": "submit_patient",
+    "patient": {"name": "Ana Silva", "birthDate": "1998-04-15"}
+  }
+}
+
+### 10. Abre "Ver ou cancelar um agendamento" pelo menu
+# @name abrirReservas
+POST {{baseUrl}}/conversations/{{criar.response.body.$.conversation.id}}/interactions
+Content-Type: application/json
+
+{
+  "actionId": "{{$guid}}",
+  "expectedRevision": {{paciente.response.body.$.conversation.revision}},
+  "input": {"type": "select_option", "optionId": "opt_appointments"}
+}
+
+### 11. Lista as reservas da conversa (com canCancel)
+# @name reservas
+GET {{baseUrl}}/conversations/{{criar.response.body.$.conversation.id}}/appointments
+
+### 12. Cancela a primeira reserva da conversa
+# @name cancelar
+POST {{baseUrl}}/conversations/{{criar.response.body.$.conversation.id}}/interactions
+Content-Type: application/json
+
+{
+  "actionId": "{{$guid}}",
+  "expectedRevision": {{abrirReservas.response.body.$.conversation.revision}},
+  "input": {"type": "cancel_appointment", "appointmentId": "{{reservas.response.body.$.data[0].id}}"}
+}
+
+### 13. Revisão antiga: 409 STALE_CONVERSATION_STATE
+POST {{baseUrl}}/conversations/{{criar.response.body.$.conversation.id}}/interactions
+Content-Type: application/json
+
+{
+  "actionId": "{{$guid}}",
+  "expectedRevision": 0,
+  "input": {"type": "select_option", "optionId": "opt_schedule"}
+}
+
+### 14. Opção que não existe no passo: 422 INVALID_OPTION
+POST {{baseUrl}}/conversations/{{criar.response.body.$.conversation.id}}/interactions
+Content-Type: application/json
+
+{
+  "actionId": "{{$guid}}",
+  "expectedRevision": {{cancelar.response.body.$.conversation.revision}},
+  "input": {"type": "select_option", "optionId": "opt_inexistente"}
+}
+
+### 15. Sai da conversa
+# @name sair
+POST {{baseUrl}}/conversations/{{criar.response.body.$.conversation.id}}/interactions
+Content-Type: application/json
+
+{
+  "actionId": "{{$guid}}",
+  "expectedRevision": {{cancelar.response.body.$.conversation.revision}},
+  "input": {"type": "exit"}
+}
+
+### 16. Conversa encerrada recusa novas ações: 409 CONVERSATION_CLOSED
+POST {{baseUrl}}/conversations/{{criar.response.body.$.conversation.id}}/interactions
+Content-Type: application/json
+
+{
+  "actionId": "{{$guid}}",
+  "expectedRevision": {{sair.response.body.$.conversation.revision}},
+  "input": {"type": "select_option", "optionId": "opt_schedule"}
+}
+
+### 17. JSON malformado: 400 INVALID_JSON
+POST {{baseUrl}}/conversations
+Content-Type: application/json
+
+{ isto não é json
+
+### 18. Rota inexistente: 404 ROUTE_NOT_FOUND
+GET {{baseUrl}}/inexistente
+
+### ----- Painel -----
+
+### 19. Home: indicadores do mês e próximas consultas
+GET {{baseUrl}}/dashboard?month={{$localDatetime 'YYYY-MM'}}
+
+### 20. Home com mês inválido: 400 INVALID_MONTH
+GET {{baseUrl}}/dashboard?month=2026-13
+
+### 21. Calendário: contagem por data no intervalo visível
+GET {{baseUrl}}/calendar?startDate=2026-10-25&endDateExclusive=2026-12-06
+
+### 22. Dia: detalhe de uma data, com salas e ocupação
+GET {{baseUrl}}/calendar/days/{{$localDatetime 'YYYY-MM-DD'}}
+
+### 23. Analytics do mês
+GET {{baseUrl}}/analytics?period=month&reference={{$localDatetime 'YYYY-MM'}}
+
+### 24. Analytics da semana, com a série diária
+GET {{baseUrl}}/analytics?period=week&reference={{$localDatetime 'YYYY-MM-DD'}}
+
+### 25. Analytics do ano corrente
+GET {{baseUrl}}/analytics?period=year&reference={{$localDatetime 'YYYY'}}
+
+### 26. Analytics com data futura: 400 FUTURE_PERIOD
+GET {{baseUrl}}/analytics?period=month&reference={{$localDatetime 'YYYY-MM' 1 y}}

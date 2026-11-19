@@ -9,7 +9,7 @@ Documentos relacionados:
 - [Modelo de dados](../modelo-de-dados/README.md): schema e migrations
 - [ADRs](../adr/README.md): decisões de arquitetura
 
-> **Estado atual:** a API TypeScript oferece saúde, clínica, conversas, calendário, detalhe do dia e dashboard mensal. As migrations do modelo e do roteiro do bot são aplicadas pelo runner.
+> **Estado atual:** a API está completa para a demonstração. As migrations V1 a V23 são aplicadas pelo runner, e `npm run db:seed` carrega a clínica de demonstração.
 
 ## Pré-requisitos
 
@@ -38,7 +38,8 @@ npm run dev
 
 - `npm ci` instala as dependências exatamente como estão no `package-lock.json`.
 - `cp .env.example .env` cria a configuração local. Ela aponta para o banco do `compose.yaml`.
-- `npm run db:migrate` aplica as migrations de V1 a V19. Rodar de novo não faz nada se não houver pendências.
+- `npm run db:migrate` aplica as migrations de V1 a V23. Rodar de novo não faz nada se não houver pendências.
+- `npm run db:seed` carrega a demonstração: clínica, horários e conversas fictícias. Rodar de novo produz os mesmos dados.
 - `npm run dev` sobe a API em `http://localhost:8080` com recarga automática.
 
 Confirmar que está no ar:
@@ -48,7 +49,7 @@ curl http://localhost:8080/health
 curl http://localhost:8080/api/clinic
 ```
 
-A primeira resposta é `{"status":"ok"}`. A segunda é 404 `CLINIC_NOT_FOUND`, que é o esperado até a clínica ser cadastrada (Fase 3).
+A primeira resposta é `{"status":"ok"}`. A segunda é 200 com a clínica da demonstração, depois de `npm run db:seed`. Sem a carga, a resposta é 404 `CLINIC_NOT_FOUND`.
 
 ## Comandos do dia a dia
 

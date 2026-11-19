@@ -27,6 +27,8 @@ Ordem de execução pelo runner de migrations (`npm run db:migrate`, em `src/dat
 | V19 | `dados_roteiro_bot` | Dados | Criar | Passos e opções fixos do roteiro do bot (ADR-0009), com `codigo_opcao` estável por passo. |
 | V20 | `texto_boas_vindas` | Dados | Criar | Ajusta o texto de boas-vindas do menu ao contrato. |
 | V21 | `oferta_horario` | Nova | Criar | Horários oferecidos em cada tentativa, na ordem mostrada, para a escolha validar depois. |
+| V22 | `textos_contrato` | Dados | Criar | Textos do contrato no roteiro, com os passos de cancelamento e de volta ao menu. |
+| V23 | `indice_horario_inicio` | Nova | Criar | Índice por início do horário, para as consultas de dia, mês e Home por intervalo de instante (fase 9b). |
 
 ## Nota sobre V7 (etapas do roteiro)
 

@@ -11,8 +11,7 @@ function monthBounds(month: string): { start: string; end: string; previousStart
   const format = (targetYear: number, targetMonth: number) =>
     `${String(targetYear).padStart(4, '0')}-${String(targetMonth).padStart(2, '0')}-01`;
   const end = monthNumber === 12 ? format(year + 1, 1) : format(year, monthNumber + 1);
-  const previousStart =
-    monthNumber === 1 ? format(year - 1, 12) : format(year, monthNumber - 1);
+  const previousStart = monthNumber === 1 ? format(year - 1, 12) : format(year, monthNumber - 1);
   return { start, end, previousStart };
 }
 

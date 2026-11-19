@@ -79,6 +79,22 @@ Os testes de integração sobem um PostgreSQL 16 descartável e exigem Docker em
 4. Desenvolva em pequenos passos, rodando o teste relacionado a cada mudança.
 5. Antes do commit, rode `npm run typecheck`, `npm run lint` e `npm test`.
 
+## Integração contínua
+
+O workflow `.github/workflows/ci.yml` roda em cada pull request e em cada push para `main`. Ele usa a versão do Node do `.nvmrc` e executa, nesta ordem, os mesmos comandos que você roda localmente:
+
+| Passo | Comando | O que prova |
+|---|---|---|
+| Instalação | `npm ci` | As dependências batem com o `package-lock.json`. |
+| Tipos | `npm run typecheck` | O código compila em modo estrito. |
+| Lint | `npm run lint` | As regras do ESLint são respeitadas. |
+| Formatação | `npm run format:check` | O código está formatado com o Prettier. |
+| Testes | `npm test` | Unitários e de integração em PostgreSQL real, pelo Testcontainers. O runner do GitHub tem Docker. |
+
+Antes de abrir um pull request, rode `npm run typecheck && npm run lint && npm run format:check && npm test`. Se passar localmente, o CI tende a passar.
+
+A proteção da branch `main`, que exige o CI verde para o merge, é uma configuração do GitHub feita pelo dono do repositório. Ela não está no código.
+
 ## Quando algo der errado
 
 | Sintoma | Causa provável | O que fazer |

@@ -12,6 +12,7 @@
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint .",
     "format": "prettier --write src tests *.mts *.mjs *.json",
+    "format:check": "prettier --check src tests *.mts *.mjs *.json",
     "db:migrate": "tsx src/database/migrate.ts",
     "test": "vitest run",
     "test:unit": "vitest run tests/unit",

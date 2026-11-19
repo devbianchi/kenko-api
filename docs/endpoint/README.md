@@ -306,6 +306,9 @@ GET /api/calendar/days/2026-11-10
 - Manhã é antes de 12h; tarde é a partir de 12h.
 - `occupancyPercentage` conta horários com reserva não cancelada sobre o total de horários da sala. Não é por minutos.
 - Salas cadastradas aparecem mesmo sem consultas. Sem capacidade na data, a ocupação é `null`.
+- Percentuais saem sem arredondamento, conforme o escopo: a apresentação arredonda. `completionPercentage` é `null` sem consultas.
+- `peakHour` conta canceladas e, em empate, devolve a hora mais cedo. Sem consultas na sala, é `null`.
+- As horas são locais (America/Sao_Paulo). Manhã é antes de 12h.
 
 ### Analytics
 

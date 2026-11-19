@@ -44,16 +44,16 @@ export class DashboardRepository {
                 count(*) FILTER (WHERE r.cancelada_em IS NOT NULL)::int AS cancelled
            FROM reserva r
            JOIN horario h ON h.id_horario = r.id_horario
-          WHERE (h.inicio AT TIME ZONE 'America/Sao_Paulo')::date >= $1::date
-            AND (h.inicio AT TIME ZONE 'America/Sao_Paulo')::date < $2::date`,
+          WHERE h.inicio >= ($1::date::timestamp AT TIME ZONE 'America/Sao_Paulo')
+            AND h.inicio < ($2::date::timestamp AT TIME ZONE 'America/Sao_Paulo')`,
         [start, end, now],
       ),
       this.pool.query<{ date: string; count: number }>(
         `SELECT (h.inicio AT TIME ZONE 'America/Sao_Paulo')::date::text AS date,
                 count(*)::int AS count
            FROM reserva r JOIN horario h ON h.id_horario = r.id_horario
-          WHERE (h.inicio AT TIME ZONE 'America/Sao_Paulo')::date >= $1::date
-            AND (h.inicio AT TIME ZONE 'America/Sao_Paulo')::date < $2::date
+          WHERE h.inicio >= ($1::date::timestamp AT TIME ZONE 'America/Sao_Paulo')
+            AND h.inicio < ($2::date::timestamp AT TIME ZONE 'America/Sao_Paulo')
           GROUP BY 1 ORDER BY count(*) DESC, date ASC LIMIT 1`,
         [start, end],
       ),
@@ -61,8 +61,8 @@ export class DashboardRepository {
         `SELECT extract(hour FROM (h.inicio AT TIME ZONE 'America/Sao_Paulo'))::int AS hour,
                 count(*)::int AS count
            FROM reserva r JOIN horario h ON h.id_horario = r.id_horario
-          WHERE (h.inicio AT TIME ZONE 'America/Sao_Paulo')::date >= $1::date
-            AND (h.inicio AT TIME ZONE 'America/Sao_Paulo')::date < $2::date
+          WHERE h.inicio >= ($1::date::timestamp AT TIME ZONE 'America/Sao_Paulo')
+            AND h.inicio < ($2::date::timestamp AT TIME ZONE 'America/Sao_Paulo')
           GROUP BY 1 ORDER BY 1`,
         [start, end],
       ),
@@ -71,8 +71,8 @@ export class DashboardRepository {
            FROM reserva r
            JOIN horario h ON h.id_horario = r.id_horario
            JOIN sala s ON s.id_sala = h.id_sala
-          WHERE (h.inicio AT TIME ZONE 'America/Sao_Paulo')::date >= $1::date
-            AND (h.inicio AT TIME ZONE 'America/Sao_Paulo')::date < $2::date
+          WHERE h.inicio >= ($1::date::timestamp AT TIME ZONE 'America/Sao_Paulo')
+            AND h.inicio < ($2::date::timestamp AT TIME ZONE 'America/Sao_Paulo')
           GROUP BY s.id_sala, s.nome
           ORDER BY count(*) DESC, s.id_sala ASC LIMIT 1`,
         [start, end],
@@ -90,9 +90,7 @@ export class DashboardRepository {
         cancelled: total.cancelled,
       },
       bestDay: day ? { date: day.date, appointmentCount: day.count } : null,
-      bestRoom: room
-        ? { id: room.id, name: room.name, appointmentCount: room.count }
-        : null,
+      bestRoom: room ? { id: room.id, name: room.name, appointmentCount: room.count } : null,
       hourlyCounts: hours.rows.map(({ hour, count }) => ({ hour, appointmentCount: count })),
     };
   }
@@ -130,8 +128,8 @@ export class DashboardRepository {
           GROUP BY id_conversa
        ), samples AS (
          SELECT CASE
-                  WHEN (c.inicio AT TIME ZONE 'America/Sao_Paulo')::date >= $1::date
-                   AND (c.inicio AT TIME ZONE 'America/Sao_Paulo')::date < $2::date THEN 'current'
+                  WHEN c.inicio >= ($1::date::timestamp AT TIME ZONE 'America/Sao_Paulo')
+                   AND c.inicio < ($2::date::timestamp AT TIME ZONE 'America/Sao_Paulo') THEN 'current'
                   ELSE 'previous'
                 END AS period,
                 greatest(0, extract(epoch FROM (fc.confirmed_at - c.inicio)))::float8 AS seconds
@@ -139,11 +137,11 @@ export class DashboardRepository {
            JOIN first_confirmation fc ON fc.id_conversa = c.id_conversa
           WHERE c.inicio <= $5
             AND (
-              ((c.inicio AT TIME ZONE 'America/Sao_Paulo')::date >= $1::date
-               AND (c.inicio AT TIME ZONE 'America/Sao_Paulo')::date < $2::date)
+              (c.inicio >= ($1::date::timestamp AT TIME ZONE 'America/Sao_Paulo')
+               AND c.inicio < ($2::date::timestamp AT TIME ZONE 'America/Sao_Paulo'))
               OR
-              ((c.inicio AT TIME ZONE 'America/Sao_Paulo')::date >= $3::date
-               AND (c.inicio AT TIME ZONE 'America/Sao_Paulo')::date < $4::date)
+              (c.inicio >= ($3::date::timestamp AT TIME ZONE 'America/Sao_Paulo')
+               AND c.inicio < ($4::date::timestamp AT TIME ZONE 'America/Sao_Paulo'))
             )
        )
        SELECT period, seconds::float8 AS seconds FROM samples ORDER BY period, seconds`,

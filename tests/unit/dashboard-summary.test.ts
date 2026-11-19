@@ -10,11 +10,14 @@ describe('resumo do dashboard', () => {
 
   it('usa zeros nos horários de expediente sem consulta e desempata pela hora mais cedo', () => {
     expect(
-      summarizePeakHour([7, 8, 9, 10], [
-        { hour: 9, appointmentCount: 3 },
-        { hour: 10, appointmentCount: 3 },
-        { hour: 21, appointmentCount: 100 },
-      ]),
+      summarizePeakHour(
+        [7, 8, 9, 10],
+        [
+          { hour: 9, appointmentCount: 3 },
+          { hour: 10, appointmentCount: 3 },
+          { hour: 21, appointmentCount: 100 },
+        ],
+      ),
     ).toEqual({
       hour: 9,
       appointmentCount: 3,

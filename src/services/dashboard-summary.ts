@@ -17,13 +17,13 @@ export function summarizePeakHour(
 ): PeakHourSummary | null {
   if (businessHours.length === 0) return null;
 
-  const countsByHour = new Map(counts.map(({ hour, appointmentCount }) => [hour, appointmentCount]));
+  const countsByHour = new Map(
+    counts.map(({ hour, appointmentCount }) => [hour, appointmentCount]),
+  );
   const series = [...new Set(businessHours)]
     .sort((a, b) => a - b)
     .map((hour) => ({ hour, count: countsByHour.get(hour) ?? 0 }));
-  const peak = series.reduce((best, current) =>
-    current.count > best.count ? current : best,
-  );
+  const peak = series.reduce((best, current) => (current.count > best.count ? current : best));
   const others = series.filter((item) => item.hour !== peak.hour);
   const average =
     others.length === 0 ? 0 : others.reduce((sum, item) => sum + item.count, 0) / others.length;

@@ -6,7 +6,8 @@ services:
       POSTGRES_USER: kenko
       POSTGRES_PASSWORD: kenko
     ports:
-      - "5432:5432"
+      # Porta no seu computador. Troque por KENKO_DB_PORT no .env se a 5432 já estiver em uso.
+      - "${KENKO_DB_PORT:-5432}:5432"
     volumes:
       - kenko-db:/var/lib/postgresql/data
 

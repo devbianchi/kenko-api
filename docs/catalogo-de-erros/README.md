@@ -58,6 +58,12 @@ Erros de domínio que se referem a um campo específico também podem trazer `fi
 | `INVALID_BIRTH_DATE` | Data de nascimento futura ou inexistente. | `patient.birthDate: "..."` | Solicitar a data novamente. |
 | `INVALID_INPUT_TYPE` | `input.type` desconhecido ou campos do tipo ausentes. | `input: "..."` | Corrigir a requisição. |
 
+### 413 — Corpo grande demais
+
+| Código | Condição | Campos | Ação do cliente |
+|---|---|---|---|
+| `PAYLOAD_TOO_LARGE` | Corpo da requisição acima do limite do servidor. | nenhum | Reduzir o tamanho do corpo. Não repetir sem alterar. |
+
 ### 404 — Recurso inexistente
 
 | Código | Condição | Campos | Ação do cliente |
@@ -65,6 +71,7 @@ Erros de domínio que se referem a um campo específico também podem trazer `fi
 | `CONVERSATION_NOT_FOUND` | ID de conversa inexistente. | nenhum | Iniciar nova conversa. |
 | `APPOINTMENT_NOT_FOUND` | `appointmentId` inexistente **ou** pertencente a outra conversa. | nenhum | Recarregar a lista de reservas da conversa. |
 | `CLINIC_NOT_FOUND` | Clínica ausente no banco. | nenhum | Erro de configuração; não é esperado em demonstração carregada. |
+| `ROUTE_NOT_FOUND` | Rota inexistente, dentro ou fora de `/api`. | nenhum | Verificar a URL e o método. |
 
 Reserva de outra conversa retorna 404, e não 403, para não revelar que ela existe (VAL-08).
 
@@ -95,6 +102,10 @@ Reserva de outra conversa retorna 404, e não 403, para não revelar que ela exi
 |---|---|---|---|
 | `INTERNAL_ERROR` | 500 | Falha não tratada. Detalhe apenas no log. | Exibir mensagem genérica e permitir nova tentativa. |
 | `SERVICE_UNAVAILABLE` | 503 | Banco indisponível. | Exibir indisponibilidade e tentar novamente depois. |
+
+Toda resposta traz o cabeçalho `X-Request-Id`. Se o cliente enviar um identificador válido (até 64 caracteres: letras, números, `.`, `_` e `-`), ele é reaproveitado; caso contrário, o servidor gera um. O mesmo identificador aparece no log do erro de servidor, para rastrear a falha sem expor dados.
+
+O log de erro de servidor registra nome do erro, código, origem e status, sem a mensagem. Mensagens de erro do banco podem trazer valores de entrada, como contato ou nome.
 
 Um erro de servidor não deve deixar a conversa em estado parcial: a transação é desfeita, e o cliente pode repetir a mesma `actionId` com segurança (ADR-0006).
 

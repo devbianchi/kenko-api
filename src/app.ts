@@ -22,6 +22,8 @@ export function buildApp({ pool, clock, corsOrigins }: AppDependencies): express
       origin: corsOrigins,
       methods: ['GET', 'POST'],
       allowedHeaders: ['Content-Type'],
+      // O frontend lê o X-Request-Id para mostrar junto do erro; sem isto, o navegador o esconde.
+      exposedHeaders: ['X-Request-Id'],
     }),
   );
   app.use(express.json());

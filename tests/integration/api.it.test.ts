@@ -80,6 +80,18 @@ describe('API com PostgreSQL real', () => {
     });
   });
 
+  it('libera a origem do frontend e expõe o X-Request-Id para leitura pelo navegador', async () => {
+    const response = await request(app).get('/health').set('Origin', 'http://localhost:5173');
+    expect(response.headers['access-control-allow-origin']).toBe('http://localhost:5173');
+    expect(response.headers['access-control-expose-headers']).toBe('X-Request-Id');
+    expect(response.headers['x-request-id']).toBeTruthy();
+  });
+
+  it('não libera uma origem fora da lista', async () => {
+    const response = await request(app).get('/health').set('Origin', 'http://localhost:9999');
+    expect(response.headers['access-control-allow-origin']).toBeUndefined();
+  });
+
   it('GET /api/clinic não exige autenticação (VAL-25)', async () => {
     await clinicaBasica(pool);
     const res = await request(app).get('/api/clinic');

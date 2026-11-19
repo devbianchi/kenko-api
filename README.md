@@ -4,7 +4,7 @@ API REST do sistema de atendimento e agendamento automatizado da clínica Kenko.
 
 Projeto acadêmico, desenvolvido para a disciplina interdisciplinar do segundo semestre do curso de Análise e Desenvolvimento de Sistemas. Os dados da demonstração são fictícios, mas as operações são reais: consultar disponibilidade lê o banco, confirmar cria uma reserva e os indicadores são calculados por queries.
 
-> **Estado atual:** a base da aplicação está pronta em TypeScript. Existem o endpoint de saúde (`GET /health`), `GET /api/clinic` (responde 404 enquanto a clínica não estiver cadastrada), o runner de migrations e as migrations do modelo de dados e do roteiro do bot. Os endpoints do bot e do painel entram nas próximas fases. Os documentos em `docs/` descrevem o comportamento esperado.
+> **Estado atual:** a API TypeScript oferece saúde, clínica, conversas, calendário, detalhe do dia e dashboard mensal. As migrations do modelo e do roteiro do bot são aplicadas pelo runner. Analytics e endurecimento continuam nas próximas fases. Os documentos em `docs/` descrevem os contratos e critérios.
 
 ## Sumário
 

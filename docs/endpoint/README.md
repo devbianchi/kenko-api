@@ -208,6 +208,9 @@ GET /api/dashboard?month=2026-11
 - `appointments` inclui canceladas nos totais.
 - `bestDay`, `bestRoom` e `peakHour` podem ser `null` quando o mês não tem consultas.
 - `attendanceDuration` é a **mediana** do tempo entre o início da conversa e a primeira confirmação. Não é média.
+- Empates em `bestDay` escolhem a data mais cedo; em `peakHour`, a hora mais cedo; em `bestRoom`, o menor ID da sala.
+- `peakHour` considera apenas as horas cobertas pelo expediente semanal da clínica. Horas de expediente sem consultas entram na média como zero; horários em que a clínica está fechada ficam fora.
+- `attendanceDuration.seconds` e `previousSeconds` são `null` sem amostras no período correspondente; `differenceSeconds` também é `null` quando qualquer mediana não tem base.
 - `upcomingAppointments` tem até cinco consultas pendentes com início futuro, a partir do relógio atual. Não depende do mês informado.
 
 ### Calendário

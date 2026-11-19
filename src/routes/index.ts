@@ -3,10 +3,12 @@ import type { Pool } from 'pg';
 import { CalendarController } from '../controllers/calendar.controller';
 import { ClinicController } from '../controllers/clinic.controller';
 import { ConversationController } from '../controllers/conversation.controller';
+import { DashboardController } from '../controllers/dashboard.controller';
 import { ActionRepository } from '../repositories/action.repository';
 import { AttemptRepository } from '../repositories/attempt.repository';
 import { CalendarRepository } from '../repositories/calendar.repository';
 import { ClinicRepository } from '../repositories/clinic.repository';
+import { DashboardRepository } from '../repositories/dashboard.repository';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import { EventRepository } from '../repositories/event.repository';
 import { PatientRepository } from '../repositories/patient.repository';
@@ -16,12 +18,14 @@ import { SlotRepository } from '../repositories/slot.repository';
 import { CalendarService } from '../services/calendar.service';
 import { ClinicService } from '../services/clinic.service';
 import { ConversationService } from '../services/conversation.service';
+import { DashboardService } from '../services/dashboard.service';
 import { ConversationViewBuilder } from '../services/conversation-view';
 import { InteractionService } from '../services/interaction.service';
 import type { Clock } from '../shared/clock';
 import { createCalendarRouter } from './calendar.routes';
 import { createClinicRouter } from './clinic.routes';
 import { createConversationRouter } from './conversation.routes';
+import { createDashboardRouter } from './dashboard.routes';
 
 export interface RouteDependencies {
   pool: Pool;
@@ -63,10 +67,15 @@ export function createApiRouter({ pool, clock }: RouteDependencies): Router {
     new CalendarService(pool, new CalendarRepository(), clock),
     clock,
   );
+  const dashboardController = new DashboardController(
+    new DashboardService(new DashboardRepository(pool), clock),
+    clock,
+  );
 
   const router = Router();
   router.use('/calendar', createCalendarRouter(calendarController));
   router.use('/clinic', createClinicRouter(clinicController));
   router.use('/conversations', createConversationRouter(conversationController));
+  router.use('/dashboard', createDashboardRouter(dashboardController));
   return router;
 }

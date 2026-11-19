@@ -9,7 +9,7 @@ Documentos relacionados:
 - [Modelo de dados](../modelo-de-dados/README.md): schema e migrations
 - [ADRs](../adr/README.md): decisões de arquitetura
 
-> **Estado atual:** a base da aplicação está pronta. A API sobe, `GET /health` responde, `GET /api/clinic` responde 404 até a clínica ser cadastrada, e as migrations V1 a V19 são aplicadas pelo runner. Os endpoints do bot e do painel entram nas próximas fases.
+> **Estado atual:** a API TypeScript oferece saúde, clínica, conversas, calendário, detalhe do dia e dashboard mensal. As migrations do modelo e do roteiro do bot são aplicadas pelo runner.
 
 ## Pré-requisitos
 

@@ -1,5 +1,6 @@
 import { AppError } from '../errors/app-error';
 import type { InteractionInput } from '../schemas/interaction.schema';
+import { dataExiste } from '../shared/datas';
 import { decodeId } from '../shared/opaque-id';
 
 export type TipoVisita = 'primeira_consulta' | 'retorno';
@@ -36,17 +37,6 @@ export interface MachineContext {
   hojeLocal: string;
 }
 
-const DATA_ISO = /^\d{4}-\d{2}-\d{2}$/;
-
-/** Confere se a data existe no calendário (JavaScript aceitaria 30 de fevereiro sem reclamar). */
-function dataExiste(iso: string): boolean {
-  const [ano, mes, dia] = iso.split('-').map(Number) as [number, number, number];
-  const data = new Date(Date.UTC(ano, mes - 1, dia));
-  return (
-    data.getUTCFullYear() === ano && data.getUTCMonth() === mes - 1 && data.getUTCDate() === dia
-  );
-}
-
 function naoPermitido(): AppError {
   return new AppError('ACTION_NOT_ALLOWED_IN_STEP', 'Esta ação não é permitida neste passo.');
 }
@@ -79,7 +69,7 @@ function validarPaciente(paciente: DadosPaciente, hojeLocal: string): DadosPacie
   }
 
   const data = paciente.birthDate;
-  const valida = DATA_ISO.test(data) && dataExiste(data) && data <= hojeLocal;
+  const valida = dataExiste(data) && data <= hojeLocal;
   if (!valida) {
     throw new AppError('INVALID_BIRTH_DATE', 'Data de nascimento inválida ou futura.', {
       'patient.birthDate': 'Data de nascimento inválida ou futura.',

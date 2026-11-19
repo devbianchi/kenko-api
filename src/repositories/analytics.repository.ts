@@ -79,4 +79,81 @@ export class AnalyticsRepository {
       searchesWithoutSlots: searches.rows[0]!.n,
     };
   }
+
+  /** Marcos do funil para a coorte que iniciou agendamento. Cada marco conta a conversa uma vez. */
+  async funnel(
+    inicio: string,
+    fim: string,
+    now: Date,
+  ): Promise<{
+    started: number;
+    answeredSpecialty: number;
+    receivedSlotResult: number;
+    selectedSlot: number;
+    confirmed: number;
+  }> {
+    const { rows } = await this.pool.query<{
+      started: number;
+      triage: number;
+      viu: number;
+      escolheu: number;
+      confirmou: number;
+    }>(
+      `WITH marcos AS (
+         SELECT c.id_conversa,
+                bool_or(e.tipo = 'STARTED_SCHEDULING') AS iniciou,
+                bool_or(e.tipo = 'ANSWERED_SPECIALTY') AS triagem,
+                bool_or(e.tipo = 'SLOT_SEARCH_RESULT') AS viu,
+                bool_or(e.tipo = 'SELECTED_SLOT') AS escolheu,
+                bool_or(e.tipo = 'APPOINTMENT_CONFIRMED') AS confirmou
+           FROM conversa c
+           LEFT JOIN evento_conversa e ON e.id_conversa = c.id_conversa AND e.instante <= $3
+          WHERE c.inicio >= $1::timestamptz AND c.inicio < $2::timestamptz AND c.inicio <= $3
+          GROUP BY c.id_conversa
+       )
+       SELECT count(*) FILTER (WHERE iniciou)::int AS started,
+              count(*) FILTER (WHERE iniciou AND triagem)::int AS triage,
+              count(*) FILTER (WHERE iniciou AND viu)::int AS viu,
+              count(*) FILTER (WHERE iniciou AND escolheu)::int AS escolheu,
+              count(*) FILTER (WHERE iniciou AND confirmou)::int AS confirmou
+         FROM marcos`,
+      [inicio, fim, now],
+    );
+    const row = rows[0]!;
+    return {
+      started: row.started,
+      answeredSpecialty: row.triage,
+      receivedSlotResult: row.viu,
+      selectedSlot: row.escolheu,
+      confirmed: row.confirmou,
+    };
+  }
+
+  /**
+   * Saídas e abandonos por etapa de término. Saída usa a etapa gravada ao sair; abandono usa a etapa
+   * atual, com mais de uma hora de inatividade. Não grava nada: o abandono é calculado na leitura.
+   */
+  async endings(
+    inicio: string,
+    fim: string,
+    now: Date,
+  ): Promise<Array<{ stage: string; exited: number; abandoned: number }>> {
+    const { rows } = await this.pool.query<{ stage: string; exited: number; abandoned: number }>(
+      `SELECT etapa AS stage,
+              count(*) FILTER (WHERE encerrada_em IS NOT NULL)::int AS exited,
+              count(*) FILTER (WHERE encerrada_em IS NULL)::int AS abandoned
+         FROM (
+           SELECT c.encerrada_em, c.ultima_interacao,
+                  CASE WHEN c.encerrada_em IS NOT NULL THEN c.encerramento_etapa ELSE p.etapa END AS etapa
+             FROM conversa c
+             JOIN passo_roteiro p ON p.id_passo = c.id_passo_atual
+            WHERE c.inicio >= $1::timestamptz AND c.inicio < $2::timestamptz AND c.inicio <= $3
+         ) t
+        WHERE (encerrada_em IS NOT NULL OR $3::timestamptz > ultima_interacao + interval '1 hour')
+          AND etapa IN ('triage', 'slot_selection', 'patient_data', 'confirmation')
+        GROUP BY etapa`,
+      [inicio, fim, now],
+    );
+    return rows;
+  }
 }

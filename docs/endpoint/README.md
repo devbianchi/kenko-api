@@ -413,6 +413,13 @@ Os blocos `funnel`, `conversationEndings`, `durationDistribution`, `conversation
 - Diferenças só são calculadas quando as duas bases existem; caso contrário, `null`.
 - A resposta não inclui pacientes individuais, transcrições, nem aceita SQL, agrupamentos ou filtros arbitrários.
 
+**Estado da implementação (fase 8a)**
+
+- `GET /api/analytics` entrega `meta.period` e `meta.previousPeriod` e os cinco KPIs de `data.kpis`. Os blocos `funnel`, `conversationEndings`, `durationDistribution`, `conversationHeatmap`, `completionSeries` e `searchesWithoutSlotsBySpecialty` ainda não existem; entram nas fases 8b e 8c.
+- O período anterior tem a mesma duração e termina onde o atual começa. Em semana são sete dias; em mês, o mesmo número de dias (no exemplo de outubro, o anterior começa em 31/08); em ano, o mesmo número de meses, para que o ano anterior seja comparado com o ano inteiro anterior, mesmo em anos bissextos.
+- Valores em porcentagem e em segundos não são arredondados na API. Sem base, o valor é `null`, não zero.
+- Erros: `MISSING_PARAMETER` quando falta `period` ou `reference`; `INVALID_PERIOD` para tipo desconhecido ou referência com formato ou data inexistente; `FUTURE_PERIOD` para período posterior ao atual.
+
 ### Conversas
 
 #### `POST /api/conversations`

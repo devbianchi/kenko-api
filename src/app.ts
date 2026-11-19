@@ -1,7 +1,8 @@
 import cors from 'cors';
 import express from 'express';
 import type { Pool } from 'pg';
-import { errorHandler } from './middlewares/error-handler';
+import { createErrorHandler, routeNotFound } from './middlewares/error-handler';
+import { requestId } from './middlewares/request-id';
 import { createApiRouter } from './routes';
 import type { Clock } from './shared/clock';
 
@@ -13,6 +14,8 @@ export interface AppDependencies {
 
 export function buildApp({ pool, clock, corsOrigins }: AppDependencies): express.Express {
   const app = express();
+
+  app.use(requestId);
 
   app.use(
     cors({
@@ -29,6 +32,7 @@ export function buildApp({ pool, clock, corsOrigins }: AppDependencies): express
 
   app.use('/api', createApiRouter({ pool, clock }));
 
-  app.use(errorHandler);
+  app.use(routeNotFound);
+  app.use(createErrorHandler(clock));
   return app;
 }

@@ -418,6 +418,8 @@ Os blocos `funnel`, `conversationEndings`, `durationDistribution`, `conversation
 - `GET /api/analytics` entrega `meta.period`, `meta.previousPeriod`, `data.kpis`, `data.funnel`, `data.conversationEndings`, `data.durationDistribution`, `data.conversationHeatmap`, `data.completionSeries` e `data.searchesWithoutSlotsBySpecialty`. Com isso, o contrato de Analytics está completo.
 - A duração do histograma e do P90 usa as mesmas conversas da mediana: uma por conversa confirmada. O P90 é a posição `ceil(0,90 × N)`. Sem amostras, as estatísticas são `null`.
 - A série de conclusão segue o filtro: dias na semana, blocos 1–7, 8–14, 15–21, 22–28 e 29–fim no mês, e meses no ano. A média móvel usa os três últimos pontos calculáveis; sem base, o valor é `null`.
+- `completionSeries.grouping` vale `daily` (semana), `month_blocks` (mês) ou `monthly` (ano). Os rótulos dos pontos são `DD/MM`, `01–07` (até `29–fim`) e `MM/AAAA`. Cada ponto traz `label`, `started` (conversas que escolheram Agendar), `confirmed`, `percentage` e `movingAverage`.
+- A API aceita qualquer período que não seja futuro. O mínimo de janeiro de 2024 usado pelos seletores do painel é regra do frontend, não do backend.
 - O mapa de calor conta inícios de conversa em 7 dias e 12 faixas de duas horas, inclusive fora do expediente. As buscas sem horário por especialidade somam o KPI do mesmo período.
 - O funil conta conversas distintas que escolheram Agendar, por marco do roteiro. Os términos têm as quatro etapas `triage`, `slot_selection`, `patient_data` e `confirmation`. Saída usa a etapa gravada ao sair; abandono usa a etapa atual, com mais de uma hora de inatividade. Menu fica fora.
 - O período anterior tem a mesma duração e termina onde o atual começa. Em semana são sete dias; em mês, o mesmo número de dias (no exemplo de outubro, o anterior começa em 31/08); em ano, o mesmo número de meses, para que o ano anterior seja comparado com o ano inteiro anterior, mesmo em anos bissextos.
@@ -467,7 +469,7 @@ Cria uma conversa para um contato gerado no frontend. O bot envia automaticament
 
 **Regras**
 
-- Repetir a criação com o mesmo `contactId` (por exemplo, após falha de rede) retorna a conversa existente, sem criar outra nem renovar a atividade. A resposta é 200, sem mensagens novas. A primeira criação responde 201.
+- Repetir a criação com o mesmo `contactId` (por exemplo, após falha de rede) retorna a conversa existente, sem criar outra nem renovar a atividade. A resposta é 200. Enquanto o paciente não agiu, `messages` traz a saudação original, com o mesmo `id` e `sentAt` da primeira resposta, para o cliente que a perdeu; o cliente deduplica pelo `id`, e nenhuma interação nova é gravada. Depois da primeira ação do paciente, `messages` vem vazio. A primeira criação responde 201.
 - `contactId` é obrigatório, com 1 a 64 caracteres. Ausente retorna 400 `MISSING_PARAMETER`; inválido retorna 400 `INVALID_INPUT_TYPE`.
 - Uma nova intenção de iniciar conversa usa um `contactId` novo.
 

@@ -75,7 +75,7 @@ describe('conversas: criação, leitura e listagem', () => {
       });
     });
 
-    it('repetir com o mesmo contactId devolve a conversa existente, sem nova mensagem', async () => {
+    it('repetir com o mesmo contactId devolve a conversa existente e a mesma saudação, sem gravar nada', async () => {
       const primeira = await request(app)
         .post('/api/conversations')
         .send({ contactId: 'contact_1' });
@@ -85,9 +85,31 @@ describe('conversas: criação, leitura e listagem', () => {
 
       expect(segunda.status).toBe(200);
       expect(segunda.body.conversation.id).toBe(primeira.body.conversation.id);
-      expect(segunda.body.messages).toEqual([]);
+      // Quem perdeu a primeira resposta recebe a saudação original, com o mesmo id, para deduplicar.
+      expect(segunda.body.messages).toEqual(primeira.body.messages);
       expect(await contar(`SELECT count(*) FROM interacao`)).toBe(1);
       expect(await contar(`SELECT count(*) FROM conversa`)).toBe(1);
+    });
+
+    it('depois da primeira ação do paciente, repetir a criação não devolve mensagens', async () => {
+      const primeira = await request(app)
+        .post('/api/conversations')
+        .send({ contactId: 'contact_1' });
+      const id = primeira.body.conversation.id as string;
+      const acao = await request(app)
+        .post(`/api/conversations/${id}/interactions`)
+        .send({
+          actionId: 'act_1',
+          expectedRevision: 0,
+          input: { type: 'select_option', optionId: 'opt_clinic_info' },
+        });
+      expect(acao.status).toBe(200);
+
+      const repetida = await request(app)
+        .post('/api/conversations')
+        .send({ contactId: 'contact_1' });
+      expect(repetida.status).toBe(200);
+      expect(repetida.body.messages).toEqual([]);
     });
 
     it('contatos diferentes geram conversas independentes (VAL-01)', async () => {

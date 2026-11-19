@@ -53,7 +53,11 @@ export class ConversationService {
     return withTransaction(this.pool, async (client) => {
       const existente = await this.conversations.findByContato(contactId, client);
       if (existente) {
-        return { created: false, state: await this.state(existente, now, client), messages: [] };
+        return {
+          created: false,
+          state: await this.state(existente, now, client),
+          messages: await this.greetingReplay(existente.id, client),
+        };
       }
 
       const idPasso = await this.roteiro.findStepId('menu', client);
@@ -63,7 +67,11 @@ export class ConversationService {
         // Outra requisição criou a conversa entre a leitura e a inserção: devolve a dela.
         const concorrente = await this.conversations.findByContato(contactId, client);
         if (!concorrente) throw new Error('Conversa não encontrada após inserção concorrente.');
-        return { created: false, state: await this.state(concorrente, now, client), messages: [] };
+        return {
+          created: false,
+          state: await this.state(concorrente, now, client),
+          messages: await this.greetingReplay(concorrente.id, client),
+        };
       }
 
       const idMensagem = await this.conversations.insertBotInteraction(client, idCriado, now);
@@ -77,6 +85,18 @@ export class ConversationService {
         messages: [{ id: `msg_${idMensagem}`, author: 'bot', text: texto, sentAt: now }],
       };
     });
+  }
+
+  /**
+   * Mensagens devolvidas quando a criação é repetida com o mesmo contato. Enquanto o paciente não agiu,
+   * devolve a saudação original (mesmo id e instante), para o cliente que perdeu a primeira resposta.
+   * Não grava nada: nenhuma interação nova é criada.
+   */
+  private async greetingReplay(idConversa: number, client: PoolClient): Promise<BotMessage[]> {
+    const saudacao = await this.conversations.findGreetingBeforePatient(client, idConversa);
+    if (!saudacao) return [];
+    const texto = await this.roteiro.findStepText('menu', client);
+    return [{ id: `msg_${saudacao.id}`, author: 'bot', text: texto, sentAt: saudacao.instante }];
   }
 
   /** Lê uma conversa. Não gera mensagens, não avança o fluxo e não renova a atividade. */

@@ -37,8 +37,8 @@ export class ClinicRepository {
     };
   }
 
-  async findSchedule(clinicId: number): Promise<DaySchedule[]> {
-    const { rows } = await this.pool.query<ScheduleRow>(
+  async findSchedule(clinicId: number, db: Pool | PoolClient = this.pool): Promise<DaySchedule[]> {
+    const { rows } = await db.query<ScheduleRow>(
       `SELECT dia_semana, abertura, fechamento
          FROM expediente
         WHERE id_clinica = $1
@@ -50,6 +50,17 @@ export class ClinicRepository {
       opensAt: row.abertura,
       closesAt: row.fechamento,
     }));
+  }
+
+  async findSpecialtyName(
+    especialidadeId: number,
+    db: Pool | PoolClient = this.pool,
+  ): Promise<string | null> {
+    const { rows } = await db.query<{ nome: string }>(
+      'SELECT nome_especialidade AS nome FROM especialidade WHERE id_especialidade = $1',
+      [especialidadeId],
+    );
+    return rows[0]?.nome ?? null;
   }
 
   async findSpecialties(

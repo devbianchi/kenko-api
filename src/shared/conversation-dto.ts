@@ -1,4 +1,5 @@
 import type {
+  AppointmentView,
   BotMessage,
   ConversationRecord,
   ConversationView,
@@ -14,7 +15,7 @@ export function conversationBody(record: ConversationRecord, status: EffectiveSt
     id: encodeId('cv', record.id),
     effectiveStatus: status,
     revision: record.revision,
-    step: record.step,
+    step: record.step === 'clinic_information' ? 'menu' : record.step,
     attemptId: record.attemptId === null ? null : encodeId('attempt', record.attemptId),
   };
 }
@@ -42,7 +43,29 @@ function slotBody(slot: SlotView) {
   };
 }
 
+/** Reserva na forma do contrato: datas no fuso de negócio e identificadores opacos. */
+export function appointmentBody(appointment: AppointmentView) {
+  return {
+    id: appointment.id,
+    status: appointment.status,
+    canCancel: appointment.canCancel,
+    startsAt: toBusinessIso(appointment.startsAt),
+    endsAt: toBusinessIso(appointment.endsAt),
+    patient: appointment.patient,
+    specialty: appointment.specialty,
+    doctor: appointment.doctor,
+    room: appointment.room,
+  };
+}
+
 export function viewBody(view: ConversationView) {
+  if (view.type === 'appointments') {
+    return {
+      type: 'appointments' as const,
+      appointments: view.appointments.map(appointmentBody),
+      options: view.options,
+    };
+  }
   if (view.type === 'slots') {
     return {
       type: 'slots' as const,
@@ -58,6 +81,12 @@ export function viewBody(view: ConversationView) {
     };
   }
   return view;
+}
+
+/** Resultado de um cancelamento de reserva. */
+export interface AppointmentCancelledResult {
+  type: 'appointment_cancelled';
+  appointmentId: string;
 }
 
 /** Resultado de uma confirmação de agendamento. */
@@ -81,7 +110,7 @@ export interface InteractionDto {
   messages: ReturnType<typeof messageBody>[];
   view: ReturnType<typeof viewBody>;
   availableActions: string[];
-  result: AppointmentResult | null;
+  result: AppointmentResult | AppointmentCancelledResult | null;
 }
 
 export function interactionDto(
@@ -89,7 +118,7 @@ export function interactionDto(
   status: EffectiveStatus,
   view: ConversationView,
   messages: BotMessage[],
-  result: AppointmentResult | null = null,
+  result: AppointmentResult | AppointmentCancelledResult | null = null,
 ): InteractionDto {
   return {
     conversation: conversationBody(record, status),

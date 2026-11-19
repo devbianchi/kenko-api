@@ -153,12 +153,51 @@ describe('máquina de estados do roteiro', () => {
     }
   });
 
-  it('ainda não abre clínica e reservas pelo menu (fase 5e)', () => {
-    expect(erro(() => transition('menu', opcao('opt_clinic_info'), ctx))).toBe(
-      'ACTION_NOT_ALLOWED_IN_STEP',
+  it('abre as informações da clínica e a lista de reservas pelo menu', () => {
+    expect(transition('menu', opcao('opt_clinic_info'), ctx)).toEqual({
+      nextStep: 'clinic_information',
+      effects: [],
+    });
+    expect(transition('menu', opcao('opt_appointments'), ctx)).toEqual({
+      nextStep: 'appointments',
+      effects: [],
+    });
+  });
+
+  it('a tela da clínica aceita as opções do menu (contrato, 6.4)', () => {
+    expect(transition('clinic_information', opcao('opt_schedule'), ctx).nextStep).toBe('specialty');
+    expect(transition('clinic_information', opcao('opt_clinic_info'), ctx).nextStep).toBe(
+      'clinic_information',
     );
-    expect(erro(() => transition('menu', opcao('opt_appointments'), ctx))).toBe(
-      'ACTION_NOT_ALLOWED_IN_STEP',
+    expect(transition('clinic_information', opcao('opt_appointments'), ctx).nextStep).toBe(
+      'appointments',
     );
+  });
+
+  it('volta ao menu da lista de reservas pela opção Voltar ao menu', () => {
+    expect(transition('appointments', opcao('opt_menu'), ctx).nextStep).toBe('menu');
+  });
+
+  it('cancela a reserva indicada na lista e volta ao menu', () => {
+    expect(
+      transition('appointments', { type: 'cancel_appointment', appointmentId: 'ap_101' }, ctx),
+    ).toEqual({
+      nextStep: 'menu',
+      effects: [{ type: 'cancel_appointment', reservaId: 101 }],
+    });
+  });
+
+  it('recusa cancelamento com identificador malformado como reserva não encontrada', () => {
+    expect(
+      erro(() =>
+        transition('appointments', { type: 'cancel_appointment', appointmentId: 'xyz' }, ctx),
+      ),
+    ).toBe('APPOINTMENT_NOT_FOUND');
+  });
+
+  it('recusa cancelamento fora da lista de reservas', () => {
+    expect(
+      erro(() => transition('menu', { type: 'cancel_appointment', appointmentId: 'ap_101' }, ctx)),
+    ).toBe('ACTION_NOT_ALLOWED_IN_STEP');
   });
 });

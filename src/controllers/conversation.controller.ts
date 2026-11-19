@@ -11,6 +11,8 @@ import {
   viewBody,
 } from '../shared/conversation-dto';
 import { envelope } from '../shared/envelope';
+import { toAppointmentView } from '../services/appointment-view';
+import { appointmentBody } from '../shared/conversation-dto';
 import type { Clock } from '../shared/clock';
 import { toBusinessIso } from '../shared/business-time';
 import { decodeId, encodeId } from '../shared/opaque-id';
@@ -113,6 +115,20 @@ export class ConversationController {
           effectiveStatus: status,
           lastInteractionAt: toBusinessIso(record.lastInteractionAt),
         })),
+        this.clock,
+      ),
+    );
+  };
+
+  appointments = async (req: Request, res: Response): Promise<void> => {
+    const id = conversationIdParam(req);
+    const lista = await this.service.listAppointments(id);
+    const agora = this.clock.now();
+    res.json(
+      envelope(
+        lista.map(({ reserva, status }) =>
+          appointmentBody(toAppointmentView(reserva, agora, status === 'active')),
+        ),
         this.clock,
       ),
     );

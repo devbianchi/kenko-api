@@ -154,8 +154,8 @@ describe('reserva: escolha de horário, identificação e confirmação (fase 5d
       },
     });
     expect(confirmado.body.messages.map((m: { text: string }) => m.text)).toEqual([
-      'Sua consulta foi confirmada.',
-      'Olá! Sou o assistente Kenko. Como posso ajudar?',
+      'Consulta confirmada para 11/11 às 09h.',
+      'Posso ajudar em mais alguma coisa?',
     ]);
     expect(await contar(`SELECT count(*) FROM reserva WHERE cancelada_em IS NULL`)).toBe(1);
     expect(await contar(`SELECT count(*) FROM paciente`)).toBe(1);

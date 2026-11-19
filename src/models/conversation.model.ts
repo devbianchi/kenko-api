@@ -1,3 +1,4 @@
+import type { OpeningHoursItem } from './clinic.model';
 export type EffectiveStatus = 'active' | 'closed' | 'abandoned';
 
 /** Conversa como está no banco, com o passo atual já traduzido para o código técnico. */
@@ -35,11 +36,56 @@ export interface PatientFormView {
   selectedSlot: SlotView | null;
 }
 
+/** Reserva listada na conversa, com status derivado e se ainda pode ser cancelada. */
+export interface AppointmentView {
+  id: string;
+  status: 'pending' | 'complete' | 'cancelled';
+  canCancel: boolean;
+  startsAt: Date;
+  endsAt: Date;
+  patient: { id: string; name: string };
+  specialty: { id: string; name: string };
+  doctor: { id: string; name: string };
+  room: { id: string; name: string };
+}
+
+export interface AppointmentsView {
+  type: 'appointments';
+  appointments: AppointmentView[];
+  options: ViewOption[];
+}
+
+export interface ClinicInformation {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  openingHours: OpeningHoursItem[];
+  specialties: { id: string; name: string }[];
+}
+
+export interface ClinicInformationView {
+  type: 'clinic_information';
+  clinic: ClinicInformation | null;
+  options: ViewOption[];
+}
+
 export type ConversationView =
   | { type: 'options'; options: ViewOption[]; searchResult?: SearchResult }
   | { type: 'slots'; searchResult: 'available'; slots: SlotView[] }
   | PatientFormView
+  | AppointmentsView
+  | ClinicInformationView
   | { type: 'closed' };
+
+/** O que a montagem da tela precisa saber além do passo. */
+export interface ViewContext {
+  conversationId: number;
+  attemptId: number | null;
+  agora: Date;
+  /** Se a conversa está ativa. Afeta se uma reserva pode ser cancelada. */
+  ativa: boolean;
+}
 
 export interface BotMessage {
   id: string;

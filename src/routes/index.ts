@@ -31,12 +31,13 @@ export function createApiRouter({ pool, clock }: RouteDependencies): Router {
   const conversations = new ConversationRepository(pool);
   const slots = new SlotRepository();
   const attempts = new AttemptRepository();
-  const views = new ConversationViewBuilder(pool, roteiro, clinics, slots, attempts);
+  const reservations = new ReservationRepository();
+  const views = new ConversationViewBuilder(pool, roteiro, clinics, slots, attempts, reservations);
 
   const clinicController = new ClinicController(new ClinicService(clinics), clock);
 
   const conversationController = new ConversationController(
-    new ConversationService(pool, conversations, roteiro, views, clock),
+    new ConversationService(pool, conversations, roteiro, views, reservations, clock),
     new InteractionService(
       pool,
       conversations,
@@ -47,7 +48,7 @@ export function createApiRouter({ pool, clock }: RouteDependencies): Router {
       new ActionRepository(),
       slots,
       new PatientRepository(),
-      new ReservationRepository(),
+      reservations,
       views,
       clock,
     ),

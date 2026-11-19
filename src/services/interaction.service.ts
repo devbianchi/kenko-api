@@ -15,13 +15,16 @@ import type { SlotRepository } from '../repositories/slot.repository';
 import type { InteractionBody } from '../schemas/interaction.schema';
 import type { Clock } from '../shared/clock';
 import { toBusinessIso } from '../shared/business-time';
+import { formatarData, formatarHora, renderizarTexto } from '../shared/mensagens';
 import {
   type ActionOutcome,
+  type AppointmentCancelledResult,
   type AppointmentResult,
   interactionDto,
   slotUnavailableBody,
 } from '../shared/conversation-dto';
 import { encodeId } from '../shared/opaque-id';
+import { appointmentStatus } from './appointment-status';
 import { effectiveStatus } from './conversation-status';
 import type { ConversationViewBuilder } from './conversation-view';
 import { hashInput } from './interaction-hash';
@@ -39,7 +42,9 @@ interface Progresso {
   proximoPasso: string;
   idPaciente: number | null;
   limparTentativa: boolean;
-  resultado: AppointmentResult | null;
+  resultado: AppointmentResult | AppointmentCancelledResult | null;
+  /** Início do horário confirmado, para o texto da confirmação. */
+  horarioInicio: Date | null;
 }
 
 /**
@@ -142,6 +147,7 @@ export class InteractionService {
       idPaciente: null,
       limparTentativa: false,
       resultado: null,
+      horarioInicio: null,
     };
 
     for (const effect of passo.effects) {
@@ -179,7 +185,16 @@ export class InteractionService {
     const mensagens = await this.mensagensDoPasso(conversationId, progresso, now, client);
     const atualizada = await this.conversations.findById(conversationId, client);
     if (!atualizada) throw new Error('Conversa sumiu durante a ação.');
-    const view = await this.views.build(progresso.proximoPasso, progresso.idTentativa, client);
+    const view = await this.views.build(
+      progresso.proximoPasso,
+      {
+        conversationId,
+        attemptId: progresso.idTentativa,
+        agora: now,
+        ativa: effectiveStatus(atualizada, now) === 'active',
+      },
+      client,
+    );
 
     const dto = interactionDto(
       atualizada,
@@ -274,6 +289,11 @@ export class InteractionService {
         return;
       }
 
+      case 'cancel_appointment': {
+        await this.cancelAppointment(effect.reservaId, conversa, progresso, now, db);
+        return;
+      }
+
       case 'exit': {
         if (progresso.idTentativa !== null) {
           await this.attempts.finish(progresso.idTentativa, 'exited', now, db);
@@ -331,6 +351,7 @@ export class InteractionService {
     if (!horario) throw new Error('Horário da reserva não encontrado.');
 
     progresso.idPaciente = pacienteId;
+    progresso.horarioInicio = horario.startsAt;
     progresso.limparTentativa = true;
     progresso.idTentativa = null;
     progresso.proximoPasso = 'menu';
@@ -349,6 +370,35 @@ export class InteractionService {
     };
   }
 
+  /**
+   * Cancela uma reserva pendente da própria conversa (RN-18). A reserva de outra conversa é 404,
+   * porque não se confirma a existência dela. Completa ou já cancelada é 409. Não apaga a
+   * confirmação; o horário volta a ser oferecido na próxima busca, se ainda for futuro.
+   */
+  private async cancelAppointment(
+    reservaId: number,
+    conversa: ConversationRecord,
+    progresso: Progresso,
+    now: Date,
+    db: Db,
+  ): Promise<void> {
+    const reserva = await this.reservations.findById(reservaId, db);
+    if (!reserva || reserva.idConversaOrigem !== conversa.id) {
+      throw new AppError('APPOINTMENT_NOT_FOUND', 'Agendamento não encontrado nesta conversa.');
+    }
+    const status = appointmentStatus({ canceladaEm: reserva.canceladaEm, fim: reserva.fim }, now);
+    if (status !== 'pending') {
+      throw new AppError('APPOINTMENT_NOT_CANCELLABLE', 'Esta consulta não pode ser cancelada.');
+    }
+
+    await this.reservations.cancel(reservaId, now, db);
+    progresso.proximoPasso = 'menu';
+    progresso.resultado = {
+      type: 'appointment_cancelled',
+      appointmentId: encodeId('ap', reservaId),
+    };
+  }
+
   /** Textos do passo seguinte. Depois de uma confirmação, vêm a confirmação e o menu. */
   private async mensagensDoPasso(
     conversationId: number,
@@ -356,14 +406,43 @@ export class InteractionService {
     now: Date,
     db: Db,
   ): Promise<BotMessage[]> {
-    const codigos = progresso.resultado ? ['confirmation', 'menu'] : [progresso.proximoPasso];
     const mensagens: BotMessage[] = [];
-    for (const codigo of codigos) {
-      const texto = await this.roteiro.findStepText(codigo, db);
+    for (const { codigo, variaveis } of await this.textosDaAcao(progresso, db)) {
+      const modelo = await this.roteiro.findStepText(codigo, db);
+      const texto = renderizarTexto(modelo, variaveis);
       const idMensagem = await this.conversations.insertBotInteraction(db, conversationId, now);
       mensagens.push({ id: `msg_${idMensagem}`, author: 'bot', text: texto, sentAt: now });
     }
     return mensagens;
+  }
+
+  /** Quais textos do roteiro a ação mostra, e com quais valores preenchidos. */
+  private async textosDaAcao(
+    progresso: Progresso,
+    db: Db,
+  ): Promise<{ codigo: string; variaveis: Record<string, string> }[]> {
+    if (progresso.resultado?.type === 'appointment_confirmed' && progresso.horarioInicio) {
+      const inicio = progresso.horarioInicio;
+      return [
+        {
+          codigo: 'confirmation',
+          variaveis: { data: formatarData(inicio), hora: formatarHora(inicio) },
+        },
+        { codigo: 'back_to_menu', variaveis: {} },
+      ];
+    }
+    if (progresso.resultado?.type === 'appointment_cancelled') {
+      return [{ codigo: 'cancelled', variaveis: {} }];
+    }
+
+    const variaveis: Record<string, string> = {};
+    if (progresso.proximoPasso === 'visit_kind' && progresso.idTentativa !== null) {
+      const idEspecialidade = await this.attempts.findSpecialty(progresso.idTentativa, db);
+      const nome =
+        idEspecialidade === null ? null : await this.clinics.findSpecialtyName(idEspecialidade, db);
+      variaveis.especialidade = nome ?? '';
+    }
+    return [{ codigo: progresso.proximoPasso, variaveis }];
   }
 
   /**
@@ -403,7 +482,11 @@ export class InteractionService {
     const idMensagem = await this.conversations.insertBotInteraction(client, conversa.id, now);
     const atualizada = await this.conversations.findById(conversa.id, client);
     if (!atualizada) throw new Error('Conversa sumiu durante a disputa de horário.');
-    const view = await this.views.build(proximoPasso, tentativa, client);
+    const view = await this.views.build(
+      proximoPasso,
+      { conversationId: conversa.id, attemptId: tentativa, agora: now, ativa: true },
+      client,
+    );
 
     const dto = interactionDto(
       atualizada,

@@ -27,7 +27,7 @@ describe('calendário e detalhe do dia (fase 6)', () => {
   async function reserva(idHorario: number, idPaciente: number, cancelada: string | null = null) {
     const { rows: c } = await pool.query<{ id: number }>(
       `INSERT INTO conversa (id_passo_atual, contato, inicio, ultima_interacao)
-       SELECT id_passo, 'c_' || $1::text, now(), now() FROM passo_roteiro WHERE codigo_passo = 'menu'
+       SELECT id_passo, 'c_' || $1::text || '_' || (SELECT count(*) FROM conversa)::text, now(), now() FROM passo_roteiro WHERE codigo_passo = 'menu'
        RETURNING id_conversa AS id`,
       [idHorario],
     );
@@ -138,6 +138,43 @@ describe('calendário e detalhe do dia (fase 6)', () => {
       occupancyPercentage: expect.closeTo(200 / 3, 10),
       peakHour: 9,
     });
+  });
+
+  it('horário com reserva cancelada antiga e reserva ativa nova conta uma vez na ocupação (VAL-19)', async () => {
+    await cenario();
+    const { rows: m } = await pool.query<{ id: number }>(
+      'SELECT id_medico AS id FROM medico ORDER BY id_medico LIMIT 1',
+    );
+    const { rows: sa } = await pool.query<{ id: number }>(
+      "SELECT id_sala AS id FROM sala WHERE nome = 'Sala 1'",
+    );
+    const { rows: pa } = await pool.query<{ id: number }>(
+      'SELECT id_paciente AS id FROM paciente ORDER BY id_paciente LIMIT 1',
+    );
+    const horarioUnico = await horario('2026-11-12T09:00:00-03:00', m[0]!.id, sa[0]!.id);
+
+    await reserva(horarioUnico, pa[0]!.id, '2026-11-11T18:00:00-03:00'); // cancelada antes do dia
+    await reserva(horarioUnico, pa[0]!.id); // reserva ativa nova no mesmo horário
+
+    const res = await request(app).get('/api/calendar/days/2026-11-12');
+    const sala = res.body.data.rooms.find((r: { name: string }) => r.name === 'Sala 1');
+    expect(sala).toMatchObject({
+      appointmentCount: 2,
+      cancelledCount: 1,
+      totalSlots: 1,
+      occupiedSlots: 1,
+      occupancyPercentage: 100,
+    });
+  });
+
+  it('a API do calendário não devolve layout da grade (VAL-38)', async () => {
+    await cenario();
+    const res = await request(app).get(
+      '/api/calendar?startDate=2026-09-27&endDateExclusive=2026-11-01',
+    );
+    expect(res.status).toBe(200);
+    expect(Object.keys(res.body.data).sort()).toEqual(['countsByDate', 'today']);
+    expect(JSON.stringify(res.body)).not.toMatch(/gridStart|gridEnd|rows|columns/);
   });
 
   it('sala cadastrada sem horários aparece com zero consultas e ocupação nula', async () => {

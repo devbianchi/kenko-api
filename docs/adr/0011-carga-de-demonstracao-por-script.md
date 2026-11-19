@@ -11,7 +11,8 @@ O ADR-0009 definiu que a carga de demonstração é controlada pelo perfil Sprin
 
 - A carga é um script TypeScript em `src/database/seed.ts`, executado com `npm run db:seed`. Ele não roda automaticamente ao subir a API.
 - O script só roda com a variável `NODE_ENV` diferente de `production`. Se `DATABASE_URL` apontar para uma base marcada como não demonstrativa, ele se recusa a rodar. A marca é uma linha na tabela `clinica`, com o nome "Clínica Demonstração".
-- A carga continua idempotente: remove apenas os registros de demonstração (contato com prefixo `demo_` e horários da janela de demonstração) e reinsere os fatos. Duas execuções produzem os mesmos fatos.
+- A carga continua idempotente: remove a demonstração anterior e reinsere os fatos. Duas execuções produzem os mesmos fatos.
+- **Atualização (fase 10):** a versão inicial removia só as conversas com contato `demo_`. Isso falhava depois de qualquer reserva feita pela API, porque essas reservas apontavam para horários que a carga precisa apagar. Como a trava garante que a base só tem a clínica de demonstração, a limpeza agora remove todas as conversas, reservas e pacientes da base, além da oferta de horários, que a versão inicial não conhecia.
 - As datas são relativas à data de execução, e não fixas (ADR-0009, sem alteração).
 - O roteiro do bot continua vindo de migration, não da carga (ADR-0009, sem alteração).
 - Os dados são escritos em SQL parametrizado dentro de uma transação, na mesma convenção dos repositórios.

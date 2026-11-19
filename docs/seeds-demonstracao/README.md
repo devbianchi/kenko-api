@@ -47,7 +47,7 @@ Ordem de execução dos scripts (prefixo numérico):
 
 | Script | Conteúdo |
 |---|---|
-| `000-limpeza.ts` | Remove a demonstração anterior: conversas `demo_`, cadastros e horários da clínica. |
+| `000-limpeza.ts` | Remove a demonstração anterior: todas as conversas, reservas e pacientes da base, além dos cadastros e horários da clínica. |
 | `001-clinica.ts` | Clínica, expediente e especialidades. |
 | `002-profissionais.ts` | Médicos e salas. |
 | `003-horarios.ts` | Horários de 30 minutos no expediente, de 60 dias antes até 14 depois da referência. |
@@ -57,7 +57,7 @@ O roteiro (`passo_roteiro` e `opcao_roteiro`) não é carregado pelo seed. Ele v
 
 ## Regras do script
 
-- **Idempotente:** o script remove a demonstração anterior antes de recriá-la. A trava garante que a base só tem a clínica de demonstração. Se uma reserva real apontar para um horário da demonstração, a carga falha e não apaga nada.
+- **Idempotente:** o script remove a demonstração anterior antes de recriá-la, inclusive as conversas e reservas criadas pelo bot durante uma apresentação. A trava garante que a base só tem a clínica de demonstração, então tudo o que está nela é demonstração. Se a remoção falhar, a carga não apaga nada.
 - **Trava:** recusa rodar com `NODE_ENV=production` e em base com outra clínica (ADR-0011).
 - **Transacional:** o carregamento inteiro roda em uma transação. Falha em qualquer ponto desfaz tudo.
 - **Sem aleatoriedade:** valores são gerados por índice determinístico (`demo_conversa_001`, `demo_conversa_002`). Duas cargas produzem os mesmos fatos.
@@ -74,7 +74,7 @@ npm run db:migrate
 npm run db:seed
 ```
 
-Para recarregar apenas os seeds, sem apagar o banco, basta rodar `npm run db:seed` de novo. O script remove e recria os dados de demonstração.
+Para recarregar apenas os seeds, sem apagar o banco, basta rodar `npm run db:seed` de novo. O script remove e recria os dados de demonstração, inclusive as conversas e reservas feitas pela API depois da última carga. Duas recargas seguidas produzem os mesmos fatos.
 
 ## Quando recarregar
 
@@ -83,7 +83,7 @@ Para recarregar apenas os seeds, sem apagar o banco, basta rodar `npm run db:see
 | Os horários futuros acabaram (todas as pendentes viraram completas) | Recarregar. |
 | Próximas consultas do painel ficaram vazias | Recarregar. |
 | Mudou o volume ou a distribuição do dataset | Recarregar e atualizar o [dataset](dataset.md). |
-| Dados de uso real foram criados no banco | Não apagar com reset completo; use o recarregamento, que preserva o uso real. |
+| Conversas e reservas foram criadas pela API (teste ou apresentação) | Recarregar com `npm run db:seed`. A recarga apaga esses dados, porque a base é só de demonstração. Para guardar alguma coisa, faça backup antes. |
 
 ## Limites
 

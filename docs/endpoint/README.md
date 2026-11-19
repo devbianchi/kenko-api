@@ -415,7 +415,8 @@ Os blocos `funnel`, `conversationEndings`, `durationDistribution`, `conversation
 
 **Estado da implementação (fase 8a)**
 
-- `GET /api/analytics` entrega `meta.period` e `meta.previousPeriod` e os cinco KPIs de `data.kpis`. Os blocos `funnel`, `conversationEndings`, `durationDistribution`, `conversationHeatmap`, `completionSeries` e `searchesWithoutSlotsBySpecialty` ainda não existem; entram nas fases 8b e 8c.
+- `GET /api/analytics` entrega `meta.period`, `meta.previousPeriod`, os cinco KPIs de `data.kpis`, o `funnel` e os `conversationEndings`. Os blocos `durationDistribution`, `conversationHeatmap`, `completionSeries` e `searchesWithoutSlotsBySpecialty` ainda não existem; entram na fase 8c.
+- O funil conta conversas distintas que escolheram Agendar, por marco do roteiro. Os términos têm as quatro etapas `triage`, `slot_selection`, `patient_data` e `confirmation`. Saída usa a etapa gravada ao sair; abandono usa a etapa atual, com mais de uma hora de inatividade. Menu fica fora.
 - O período anterior tem a mesma duração e termina onde o atual começa. Em semana são sete dias; em mês, o mesmo número de dias (no exemplo de outubro, o anterior começa em 31/08); em ano, o mesmo número de meses, para que o ano anterior seja comparado com o ano inteiro anterior, mesmo em anos bissextos.
 - Valores em porcentagem e em segundos não são arredondados na API. Sem base, o valor é `null`, não zero.
 - Erros: `MISSING_PARAMETER` quando falta `period` ou `reference`; `INVALID_PERIOD` para tipo desconhecido ou referência com formato ou data inexistente; `FUTURE_PERIOD` para período posterior ao atual.

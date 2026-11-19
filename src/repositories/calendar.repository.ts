@@ -25,8 +25,8 @@ export class CalendarRepository {
       `SELECT (h.inicio AT TIME ZONE 'America/Sao_Paulo')::date::text AS dia, count(*)::int AS n
          FROM reserva r
          JOIN horario h ON h.id_horario = r.id_horario
-        WHERE (h.inicio AT TIME ZONE 'America/Sao_Paulo')::date >= $1::date
-          AND (h.inicio AT TIME ZONE 'America/Sao_Paulo')::date < $2::date
+        WHERE h.inicio >= ($1::date::timestamp AT TIME ZONE 'America/Sao_Paulo')
+          AND h.inicio < ($2::date::timestamp AT TIME ZONE 'America/Sao_Paulo')
         GROUP BY 1`,
       [inicio, fimExclusivo],
     );
@@ -47,7 +47,7 @@ export class CalendarRepository {
               h.fim
          FROM reserva r
          JOIN horario h ON h.id_horario = r.id_horario
-        WHERE (h.inicio AT TIME ZONE 'America/Sao_Paulo')::date = $1::date`,
+        WHERE h.inicio >= ($1::date::timestamp AT TIME ZONE 'America/Sao_Paulo') AND h.inicio < (($1::date + 1)::timestamp AT TIME ZONE 'America/Sao_Paulo')`,
       [data],
     );
     return rows.map((row) => ({
@@ -81,7 +81,7 @@ export class CalendarRepository {
                       SELECT 1 FROM reserva r
                        WHERE r.id_horario = h.id_horario AND r.cancelada_em IS NULL)) AS ocupados
              FROM horario h
-            WHERE (h.inicio AT TIME ZONE 'America/Sao_Paulo')::date = $1::date
+            WHERE h.inicio >= ($1::date::timestamp AT TIME ZONE 'America/Sao_Paulo') AND h.inicio < (($1::date + 1)::timestamp AT TIME ZONE 'America/Sao_Paulo')
             GROUP BY h.id_sala
          ) cap ON cap.id_sala = s.id_sala
         ORDER BY s.id_sala`,

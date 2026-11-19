@@ -10,7 +10,7 @@ Credenciais nunca são versionadas. O arquivo `.env.example` mostra as chaves, s
 |---|---|---|---|
 | `DATABASE_URL` | sim | nenhum | URL de conexão do PostgreSQL, por exemplo `postgresql://kenko:kenko@localhost:5432/kenko`. |
 | `PORT` | não | `8080` | Porta HTTP. |
-| `CORS_ALLOWED_ORIGINS` | não | `http://localhost:5173` | Origens do frontend, separadas por vírgula ([ADR-0008](../adr/0008-cors-e-origem-do-frontend.md)). |
+| `CORS_ALLOWED_ORIGINS` | não | `http://localhost:5173` | Origens do frontend, separadas por vírgula ([ADR-0008](../adr/0008-cors-e-origem-do-frontend.md)). Abrir o frontend por `127.0.0.1` é outra origem: inclua `http://127.0.0.1:5173` na lista se for usá-la. |
 | `NODE_ENV` | não | `development` | `development`, `test` ou `production`. |
 
 Não há valor padrão para `DATABASE_URL`. Se ela estiver ausente, a aplicação falha com `Configuração inválida: DATABASE_URL: ...`. Isso é intencional: evita subir apontando para um banco inesperado.

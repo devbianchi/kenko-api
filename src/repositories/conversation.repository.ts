@@ -152,4 +152,27 @@ export class ConversationRepository {
     );
     return rows[0]!.id;
   }
+
+  /**
+   * Saudação original da conversa, enquanto o paciente ainda não agiu. Serve ao reenvio da criação
+   * depois de uma falha de rede: o cliente recebe a mesma mensagem, com o mesmo id, e deduplica.
+   * Depois da primeira ação do paciente, devolve null.
+   */
+  async findGreetingBeforePatient(
+    db: Queryable,
+    idConversa: number,
+  ): Promise<{ id: number; instante: Date } | null> {
+    const { rows } = await db.query<{ id: number; instante: Date }>(
+      `SELECT i.id_interacao AS id, i.instante
+         FROM interacao i
+        WHERE i.id_conversa = $1 AND i.autor = 'bot'
+          AND NOT EXISTS (
+            SELECT 1 FROM interacao p WHERE p.id_conversa = $1 AND p.autor = 'paciente'
+          )
+        ORDER BY i.instante, i.id_interacao
+        LIMIT 1`,
+      [idConversa],
+    );
+    return rows[0] ?? null;
+  }
 }

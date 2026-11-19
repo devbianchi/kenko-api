@@ -156,4 +156,65 @@ export class AnalyticsRepository {
     );
     return rows;
   }
+
+  /** Inícios de conversa por dia da semana e faixa de duas horas, no fuso de negócio (MET-A09). */
+  async heatmap(
+    inicio: string,
+    fim: string,
+    now: Date,
+  ): Promise<Array<{ weekday: number; bucket: number; count: number }>> {
+    const { rows } = await this.pool.query<{ weekday: number; bucket: number; count: number }>(
+      `SELECT extract(dow FROM (c.inicio AT TIME ZONE '${BUSINESS_TZ}'))::int AS weekday,
+              floor(extract(hour FROM (c.inicio AT TIME ZONE '${BUSINESS_TZ}')) / 2)::int AS bucket,
+              count(*)::int AS count
+         FROM conversa c
+        WHERE c.inicio >= $1::timestamptz AND c.inicio < $2::timestamptz AND c.inicio <= $3
+        GROUP BY 1, 2`,
+      [inicio, fim, now],
+    );
+    return rows;
+  }
+
+  /** Agendamentos e confirmações por dia local da data de início (base da série de conclusão). */
+  async dailyCompletion(
+    inicio: string,
+    fim: string,
+    now: Date,
+  ): Promise<Array<{ date: string; started: number; confirmed: number }>> {
+    const { rows } = await this.pool.query<{ date: string; started: number; confirmed: number }>(
+      `SELECT (c.inicio AT TIME ZONE '${BUSINESS_TZ}')::date::text AS date,
+              count(*) FILTER (WHERE EXISTS (
+                SELECT 1 FROM evento_conversa s WHERE s.id_conversa = c.id_conversa
+                   AND s.tipo = 'STARTED_SCHEDULING' AND s.instante <= $3))::int AS started,
+              count(*) FILTER (WHERE EXISTS (
+                SELECT 1 FROM evento_conversa s WHERE s.id_conversa = c.id_conversa
+                   AND s.tipo = 'STARTED_SCHEDULING' AND s.instante <= $3)
+              AND EXISTS (
+                SELECT 1 FROM evento_conversa s WHERE s.id_conversa = c.id_conversa
+                   AND s.tipo = 'APPOINTMENT_CONFIRMED' AND s.instante <= $3))::int AS confirmed
+         FROM conversa c
+        WHERE c.inicio >= $1::timestamptz AND c.inicio < $2::timestamptz AND c.inicio <= $3
+        GROUP BY 1`,
+      [inicio, fim, now],
+    );
+    return rows;
+  }
+
+  /** Ocorrências de busca sem horário por especialidade, em ordem decrescente (MET-A11). */
+  async searchesBySpecialty(
+    inicio: string,
+    fim: string,
+    now: Date,
+  ): Promise<Array<{ id: number; name: string; count: number }>> {
+    const { rows } = await this.pool.query<{ id: number; name: string; count: number }>(
+      `SELECT e.id_especialidade AS id, e.nome_especialidade AS name, count(*)::int AS count
+         FROM busca_sem_horario b
+         JOIN especialidade e ON e.id_especialidade = b.id_especialidade
+        WHERE b.instante >= $1::timestamptz AND b.instante < $2::timestamptz AND b.instante <= $3
+        GROUP BY e.id_especialidade, e.nome_especialidade
+        ORDER BY count(*) DESC, e.id_especialidade ASC`,
+      [inicio, fim, now],
+    );
+    return rows;
+  }
 }

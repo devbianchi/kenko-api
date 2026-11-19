@@ -26,12 +26,12 @@ export function localMidnight(day: string): string {
   return `${day}T00:00:00-03:00`;
 }
 
-function shiftDays(day: string, amount: number): string {
+export function shiftDays(day: string, amount: number): string {
   const [year, month, date] = day.split('-').map(Number) as [number, number, number];
   return new Date(Date.UTC(year, month - 1, date + amount)).toISOString().slice(0, 10);
 }
 
-function firstOfMonth(year: number, month: number): string {
+export function firstOfMonth(year: number, month: number): string {
   return new Date(Date.UTC(year, month - 1, 1)).toISOString().slice(0, 10);
 }
 

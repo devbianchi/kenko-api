@@ -4,7 +4,7 @@ API REST do sistema de atendimento e agendamento automatizado da clínica Kenko.
 
 Projeto acadêmico, desenvolvido para a disciplina interdisciplinar do segundo semestre do curso de Análise e Desenvolvimento de Sistemas. Os dados da demonstração são fictícios, mas as operações são reais: consultar disponibilidade lê o banco, confirmar cria uma reserva e os indicadores são calculados por queries.
 
-> **Estado atual:** a API TypeScript oferece saúde, clínica, conversas, calendário, detalhe do dia e dashboard mensal. As migrations do modelo e do roteiro do bot são aplicadas pelo runner. Analytics e endurecimento continuam nas próximas fases. Os documentos em `docs/` descrevem os contratos e critérios.
+> **Estado atual:** a API está completa para a demonstração: bot de agendamento, painel (Home, Calendário, Dia e Analytics) e tratamento de erros. As migrations V1 a V23 são aplicadas pelo runner, e a carga de demonstração (`npm run db:seed`) cria clínica, horários e conversas fictícias. Para testar os endpoints de ponta a ponta, use o arquivo `requests.http`. A entrega acadêmica está em `docs/entrega/`.
 
 ## Sumário
 
@@ -64,7 +64,7 @@ kenko-api/
     controllers/         adaptam HTTP ao serviço e respondem com o envelope
     database/
       migrate.ts         aplica as migrations pendentes e registra em schema_migrations
-      migrations/        V1 a V19: modelo de dados e roteiro do bot em SQL
+      migrations/        V1 a V23: modelo de dados, roteiro do bot e índices em SQL
     errors/              AppError e catálogo de códigos com status HTTP
     middlewares/         tratamento central de erros
     models/              tipos dos dados como estão no banco
@@ -77,6 +77,7 @@ kenko-api/
     integration/         API com PostgreSQL real pelo Testcontainers
     support/             helpers compartilhados pelos testes
   compose.yaml           PostgreSQL 16 para desenvolvimento local
+  requests.http          fluxo completo do bot e do painel, para o REST Client do VS Code
   package.json, tsconfig*.json, vitest.config.mts, eslint.config.mjs
 ```
 
@@ -93,6 +94,7 @@ npm ci
 cp .env.example .env
 docker compose up -d db
 npm run db:migrate
+npm run db:seed
 npm run dev
 ```
 
@@ -100,7 +102,7 @@ A API sobe em `http://localhost:8080`. Para confirmar:
 
 ```bash
 curl http://localhost:8080/health
-curl http://localhost:8080/api/clinic   # 404 CLINIC_NOT_FOUND até a clínica ser cadastrada
+curl http://localhost:8080/api/clinic   # 200 com a demonstração carregada; 404 CLINIC_NOT_FOUND sem ela
 ```
 
 O guia completo está em [Desenvolvimento local](docs/desenvolvimento-local/README.md).
@@ -114,6 +116,7 @@ O guia completo está em [Desenvolvimento local](docs/desenvolvimento-local/READ
 | Compilar para `dist/` | `npm run build` |
 | Rodar a versão compilada | `npm start` |
 | Aplicar migrations pendentes | `npm run db:migrate` |
+| Carregar a demonstração | `npm run db:seed` |
 | Checar tipos | `npm run typecheck` |
 | Lint | `npm run lint` |
 | Formatar | `npm run format` |
@@ -135,6 +138,8 @@ O guia completo está em [Desenvolvimento local](docs/desenvolvimento-local/READ
 | [Estratégia de testes](docs/estrategia-de-testes/README.md) | Níveis de teste, convenções e critérios de pronto |
 | [Dados de teste](docs/estrategia-de-testes/dados-de-teste.md) | Relógio fixo, base com PostgreSQL e cenários reutilizáveis |
 | [Seeds de demonstração](docs/seeds-demonstracao/README.md) | Dados fictícios para o painel e o bot, e a estratégia de datas |
+| [Entrega acadêmica](docs/entrega/README.md) | Checklist dos requisitos, roteiro da apresentação, recarga da demonstração e ensaio |
+| [Desempenho](docs/desempenho/README.md) | Medição das consultas, índices e decisões de desempenho |
 | [ADRs](docs/adr/README.md) | Decisões de arquitetura registradas, da escolha do PostgreSQL à proteção contra dupla reserva |
 
 Os requisitos funcionais, as regras de negócio e as métricas estão no escopo consolidado do projeto, em [docs/escopo](docs/escopo/escopo-kenko-v2.md).

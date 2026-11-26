@@ -7,6 +7,7 @@ import { loadMigrations, migrate } from '../../src/database/migrate';
 import { fixedClock } from '../../src/shared/clock';
 import { clinicaBasica, resetClinica } from '../support/cenarios';
 import { startPostgres } from '../support/postgres';
+import { assertOpenApiResponse } from '../support/openapi';
 
 const T0 = '2026-11-10T15:00:00Z'; // terça-feira, 12:00 em Brasília
 
@@ -60,6 +61,7 @@ describe('reserva: escolha de horário, identificação e confirmação (fase 5d
     const conv = await request(app)
       .post('/api/conversations')
       .send({ contactId: `contato_${contador}` });
+    assertOpenApiResponse('POST', '/api/conversations', conv.status, conv.body, conv.headers);
     const id = conv.body.conversation.id as string;
     const passos: [string, number, object][] = [
       ['a1', 0, { type: 'select_option', optionId: 'opt_schedule' }],
@@ -67,9 +69,16 @@ describe('reserva: escolha de horário, identificação e confirmação (fase 5d
       ['a3', 2, { type: 'select_option', optionId: 'opt_first_visit' }],
     ];
     for (const [actionId, expectedRevision, input] of passos) {
-      await request(app)
+      const response = await request(app)
         .post(`/api/conversations/${id}/interactions`)
         .send({ actionId: `${contato(id)}_${actionId}`, expectedRevision, input });
+      assertOpenApiResponse(
+        'POST',
+        `/api/conversations/${id}/interactions`,
+        response.status,
+        response.body,
+        response.headers,
+      );
     }
     return { id, revisao: 3 };
   }
@@ -81,7 +90,16 @@ describe('reserva: escolha de horário, identificação e confirmação (fase 5d
   async function escolher(id: string, actionId: string, expectedRevision: number, slotId: string) {
     return request(app)
       .post(`/api/conversations/${id}/interactions`)
-      .send({ actionId, expectedRevision, input: { type: 'select_slot', slotId } });
+      .send({ actionId, expectedRevision, input: { type: 'select_slot', slotId } })
+      .expect((response) => {
+        assertOpenApiResponse(
+          'POST',
+          `/api/conversations/${id}/interactions`,
+          response.status,
+          response.body,
+          response.headers,
+        );
+      });
   }
 
   async function identificar(
@@ -97,6 +115,15 @@ describe('reserva: escolha de horário, identificação e confirmação (fase 5d
         actionId,
         expectedRevision,
         input: { type: 'submit_patient', patient: { name: nome, birthDate: nascimento } },
+      })
+      .expect((response) => {
+        assertOpenApiResponse(
+          'POST',
+          `/api/conversations/${id}/interactions`,
+          response.status,
+          response.body,
+          response.headers,
+        );
       });
   }
 

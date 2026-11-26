@@ -7,6 +7,7 @@ import { runSeed } from '../../src/database/seed';
 import { fixedClock } from '../../src/shared/clock';
 import { startPostgres } from '../support/postgres';
 import { runRequestsFile } from '../support/requests-http';
+import { assertOpenApiResponse } from '../support/openapi';
 
 const NOW = '2026-11-10T15:00:00Z'; // 12:00 em Brasília: a demonstração é relativa a este dia.
 
@@ -27,7 +28,15 @@ describe('requests.http da entrega', () => {
 
   it('executa o fluxo completo do bot, o painel e os erros esperados, na ordem do arquivo', async () => {
     const app = buildApp({ pool, clock: fixedClock(NOW), corsOrigins: [] });
-    const executed = await runRequestsFile(app, 'requests.http', fixedClock(NOW));
+    const executed = await runRequestsFile(app, 'requests.http', fixedClock(NOW), (response) => {
+      assertOpenApiResponse(
+        response.method,
+        response.url,
+        response.status,
+        response.body,
+        response.headers,
+      );
+    });
 
     expect(executed.length).toBeGreaterThanOrEqual(25);
     const cancelamento = executed.find((item) => item.title.startsWith('12.'));

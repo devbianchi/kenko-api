@@ -1,0 +1,26 @@
+type: object
+description: Totais por data marcada, incluindo reservas canceladas. Cancelamento prevalece;
+  completa significa fim do horário alcançado, sem comprovar presença.
+additionalProperties: false
+required:
+  - total
+  - complete
+  - pending
+  - cancelled
+properties:
+  total:
+    type: integer
+    minimum: 0
+    description: Total de consultas, igual à soma dos três status.
+  complete:
+    type: integer
+    minimum: 0
+    description: Não canceladas cujo horário já terminou.
+  pending:
+    type: integer
+    minimum: 0
+    description: Não canceladas cujo horário ainda não terminou.
+  cancelled:
+    type: integer
+    minimum: 0
+    description: Reservas canceladas, preservadas no histórico.

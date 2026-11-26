@@ -1,0 +1,9 @@
+summary: Estados na ordem dos ids encontrados
+value:
+  meta:
+    timezone: America/Sao_Paulo
+    evaluatedAt: 2026-11-10T12:00:00-03:00
+  data:
+    - id: cv_1
+      effectiveStatus: active
+      lastInteractionAt: 2026-11-10T12:00:00-03:00

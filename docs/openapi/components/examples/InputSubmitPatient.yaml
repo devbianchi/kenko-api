@@ -1,0 +1,9 @@
+summary: Identifica o paciente e confirma a primeira reserva na mesma transação.
+value:
+  actionId: act_submit_patient
+  expectedRevision: 4
+  input:
+    type: submit_patient
+    patient:
+      name: Ana Silva
+      birthDate: 1998-04-15

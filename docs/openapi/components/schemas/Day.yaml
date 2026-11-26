@@ -1,0 +1,96 @@
+type: object
+description: Detalhe de uma data marcada. Totais conferem com calendário e soma das salas;
+  distribuições incluem canceladas.
+additionalProperties: false
+required:
+  - date
+  - summary
+  - appointmentsByHour
+  - appointmentsByDayPeriod
+  - rooms
+properties:
+  date:
+    type: string
+    format: date
+    description: Data consultada.
+  summary:
+    type: object
+    description: Resumo de consultas por status e conclusão.
+    additionalProperties: false
+    required:
+      - total
+      - complete
+      - pending
+      - cancelled
+      - completionPercentage
+    properties:
+      total:
+        type: integer
+        minimum: 0
+        description: Total de consultas, igual à soma dos três status.
+      complete:
+        type: integer
+        minimum: 0
+        description: Não canceladas cujo horário já terminou.
+      pending:
+        type: integer
+        minimum: 0
+        description: Não canceladas cujo horário ainda não terminou.
+      cancelled:
+        type: integer
+        minimum: 0
+        description: Reservas canceladas, preservadas no histórico.
+      completionPercentage:
+        anyOf:
+          - type: number
+            minimum: 0
+            maximum: 100
+            description: 100 × complete / total; null sem consultas.
+          - type: 'null'
+  appointmentsByHour:
+    type: object
+    description: Vetores alinhados com as 24 horas locais, incluindo zeros.
+    additionalProperties: false
+    required:
+      - hours
+      - counts
+    properties:
+      hours:
+        type: array
+        description: Horas 0 a 23, em ordem.
+        items:
+          type: integer
+          minimum: 0
+          maximum: 23
+        minItems: 24
+        maxItems: 24
+      counts:
+        type: array
+        description: Quantidade na posição correspondente de hours.
+        items:
+          type: integer
+          minimum: 0
+          description: Consultas iniciadas nesta hora.
+        minItems: 24
+        maxItems: 24
+  appointmentsByDayPeriod:
+    type: object
+    description: 'Divisão pela hora de início: manhã antes de 12h, tarde a partir de 12h.'
+    additionalProperties: false
+    required:
+      - morning
+      - afternoon
+    properties:
+      morning:
+        type: integer
+        minimum: 0
+        description: Consultas antes de 12h.
+      afternoon:
+        type: integer
+        minimum: 0
+        description: Consultas a partir de 12h.
+  rooms:
+    type: array
+    description: Resumo de todas as salas cadastradas.
+    items:
+      $ref: ../../openapi.yaml#/components/schemas/RoomDay

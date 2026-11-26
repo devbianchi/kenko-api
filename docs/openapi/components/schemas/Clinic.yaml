@@ -1,0 +1,34 @@
+type: object
+description: Cadastro da clínica e especialidades consultados no banco.
+additionalProperties: false
+required:
+  - id
+  - name
+  - address
+  - phone
+  - openingHours
+  - specialties
+properties:
+  id:
+    type: string
+    description: 'Identificador da clínica. Identificador opaco: use o valor retornado pela API; não
+      extraia a chave numérica.'
+  name:
+    type: string
+    description: Nome da clínica.
+  address:
+    type: string
+    description: Endereço cadastrado.
+  phone:
+    type: string
+    description: Telefone cadastrado, tratado como texto.
+  openingHours:
+    type: array
+    description: Expediente agrupado; domingo aparece por último.
+    items:
+      $ref: ../../openapi.yaml#/components/schemas/OpeningHours
+  specialties:
+    type: array
+    description: Especialidades disponíveis; seus ids são usados na triagem.
+    items:
+      $ref: ../../openapi.yaml#/components/schemas/NamedResource

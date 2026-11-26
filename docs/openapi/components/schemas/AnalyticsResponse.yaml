@@ -1,0 +1,31 @@
+type: object
+description: Leitura agregada com janela atual e anterior resolvidas em meta.
+additionalProperties: false
+required:
+  - meta
+  - data
+properties:
+  meta:
+    type: object
+    description: Contexto de avaliação e comparação.
+    additionalProperties: false
+    required:
+      - timezone
+      - evaluatedAt
+      - period
+      - previousPeriod
+    properties:
+      timezone:
+        type: string
+        const: America/Sao_Paulo
+        description: Fuso aplicado às regras e às datas locais.
+      evaluatedAt:
+        type: string
+        format: date-time
+        description: Instante de avaliação da resposta. Não é um parâmetro para simular o passado.
+      period:
+        $ref: ../../openapi.yaml#/components/schemas/Period
+      previousPeriod:
+        $ref: ../../openapi.yaml#/components/schemas/PreviousPeriod
+  data:
+    $ref: ../../openapi.yaml#/components/schemas/Analytics

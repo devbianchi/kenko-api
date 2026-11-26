@@ -1,0 +1,26 @@
+type: object
+description: Estado de uma conversa conhecida pelo navegador.
+additionalProperties: false
+required:
+  - id
+  - effectiveStatus
+  - lastInteractionAt
+properties:
+  id:
+    type: string
+    description:
+      'Identificador da conversa. Identificador opaco: use o valor retornado pela API; não
+      extraia a chave numérica.'
+  effectiveStatus:
+    type: string
+    enum:
+      - active
+      - closed
+      - abandoned
+    description:
+      Closed por saída explícita; abandoned se inatividade estritamente maior que uma hora. O
+      abandono é derivado e não reabre.
+  lastInteractionAt:
+    type: string
+    format: date-time
+    description: Última interação efetiva no banco.

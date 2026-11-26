@@ -1,0 +1,17 @@
+summary: Saída encerra sem cancelar reservas
+value:
+  conversation:
+    id: cv_1
+    effectiveStatus: closed
+    revision: 8
+    step: closed
+    attemptId: null
+  messages:
+    - id: msg_9
+      author: bot
+      text: Olá! Como posso ajudar?
+      sentAt: 2026-11-10T12:00:00-03:00
+  view:
+    type: closed
+  availableActions: []
+  result: null

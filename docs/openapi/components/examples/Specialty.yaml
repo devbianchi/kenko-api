@@ -1,0 +1,23 @@
+summary: Agendar inicia a triagem de duas perguntas
+value:
+  conversation:
+    id: cv_1
+    effectiveStatus: active
+    revision: 1
+    step: specialty
+    attemptId: attempt_1
+  messages:
+    - id: msg_2
+      author: bot
+      text: Olá! Como posso ajudar?
+      sentAt: 2026-11-10T12:00:00-03:00
+  view:
+    type: options
+    options:
+      - id: sp_1
+        label: Clínico geral
+      - id: sp_2
+        label: Dermatologia
+  availableActions:
+    - exit
+  result: null

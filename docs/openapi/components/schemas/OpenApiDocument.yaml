@@ -1,0 +1,37 @@
+type: object
+description: >-
+  Documento OpenAPI 3.1.0 completo. info e paths identificam a API e suas operações; os demais
+  campos do padrão, como components, tags, servers e security, são preservados. Os schemas das
+  operações de negócio estão dentro desse documento, e não em data. A validação formal completa
+  da especificação é feita pelo Redocly antes da entrega e no CI; este schema descreve sua forma raiz.
+required:
+  - openapi
+  - info
+  - paths
+properties:
+  openapi:
+    type: string
+    const: 3.1.0
+    description: Versão do padrão OpenAPI, diferente da versão da API em info.version.
+  info:
+    type: object
+    description: Identificação, versão e explicações gerais da API.
+    required:
+      - title
+      - version
+    properties:
+      title:
+        type: string
+        minLength: 1
+        description: Nome da API.
+      version:
+        type: string
+        minLength: 1
+        description: Versão da API documentada, acompanhando package.json.
+    additionalProperties: true
+  paths:
+    type: object
+    description: Caminhos HTTP e seus contratos, incluindo /api/docs e /health.
+    additionalProperties:
+      type: object
+additionalProperties: true

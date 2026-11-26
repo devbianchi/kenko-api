@@ -1,0 +1,23 @@
+type: object
+description: Contagens no intervalo visível enviado pelo frontend. Não contém layout ou número de
+  linhas da grade.
+additionalProperties: false
+required:
+  - today
+  - countsByDate
+properties:
+  today:
+    type: string
+    format: date
+    description: Data atual em America/Sao_Paulo.
+  countsByDate:
+    type: object
+    description:
+      Mapa de data local para quantidade. Datas ausentes equivalem a zero; canceladas entram
+      na contagem.
+    propertyNames:
+      format: date
+    additionalProperties:
+      type: integer
+      minimum: 0
+      description: Consultas nesta data.

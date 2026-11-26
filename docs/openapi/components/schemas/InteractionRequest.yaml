@@ -1,0 +1,19 @@
+type: object
+description: Uma ação nova usa actionId novo e a revisão recebida. Reenvios da mesma ação preservam
+  actionId e input.
+required:
+  - actionId
+  - expectedRevision
+  - input
+properties:
+  actionId:
+    type: string
+    minLength: 1
+    maxLength: 64
+    description: Chave de idempotência por conversa; não precisa ser UUID.
+  expectedRevision:
+    type: integer
+    minimum: 0
+    description: Revisão usada pela ação. Replay idempotente é verificado antes da revisão.
+  input:
+    $ref: ../../openapi.yaml#/components/schemas/InteractionInput

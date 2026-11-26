@@ -1,0 +1,18 @@
+summary: Repetição após ação do paciente não repete a saudação
+value:
+  conversation:
+    id: cv_1
+    effectiveStatus: active
+    revision: 1
+    step: specialty
+    attemptId: attempt_1
+  messages: []
+  view:
+    type: options
+    options:
+      - id: sp_1
+        label: Clínico geral
+      - id: sp_2
+        label: Dermatologia
+  availableActions:
+    - exit

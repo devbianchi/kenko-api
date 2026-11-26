@@ -1,0 +1,302 @@
+openapi: 3.1.0
+info:
+  title: Kenko API
+  version: 0.1.0
+  summary: Atendimento por menus, agendamento e indicadores da clínica Kenko.
+  description: >-
+    API acadêmica aberta, sem autenticação. O bot determinístico roda no backend, com roteiro no
+    banco, e o painel é somente leitura.
+
+
+    Campos usam camelCase; ids são opacos; datas locais YYYY-MM-DD, meses YYYY-MM, instantes ISO
+    8601 com deslocamento. Todas as regras temporais usam America/Sao_Paulo. Intervalos incluem
+    início e excluem fim. Percentuais usam escala 0–100 e não são arredondados; durações são
+    segundos e medianas podem ter fração. Ausência de base é null; ausência de ocorrências é 0;
+    coleções vazias são [].
+
+
+    GETs não executam ações nem renovam atividade. A transcrição textual fica no navegador; a API
+    mantém fatos estruturados. Não há CRUD público de cadastros auxiliares, autenticação,
+    remarcação, exportação ou gestão pelo painel.
+
+
+    Esta especificação descreve o comportamento atual. Não habilita nem desabilita chamadas em um
+    visualizador ou página customizada. GET /api/docs entrega o JSON para o frontend; a interface
+    controla se oferece execução de chamadas. URLs/métodos não cadastrados recebem 404 ROUTE_NOT_FOUND com envelope error.
+    Todas as respostas trazem X-Request-Id.
+
+
+    O contrato exige um único instante por requisição; há leituras existentes que consultam Clock
+    novamente ao montar meta. Essa divergência de implementação não é corrigida pela documentação.
+    Exemplos são fictícios e independentes, exceto quando a descrição indicar uma sequência.
+
+
+    O parser JSON é global: caso um corpo JSON seja enviado a qualquer rota, JSON malformado ou
+    corpo excessivo pode gerar INVALID_JSON (400) ou PAYLOAD_TOO_LARGE (413) antes da execução da
+    operação. Leituras não exigem corpo.
+servers:
+  - url: http://localhost:8080
+    description:
+      Desenvolvimento local. A URL pública será configurada quando o ambiente de hospedagem
+      estiver definido; os paths já incluem /api.
+security: []
+tags:
+  - name: Documentação
+    description: Especificação OpenAPI em JSON para o frontend e outros visualizadores.
+  - name: Saúde
+    description: Disponibilidade do processo HTTP; não verifica prontidão do banco.
+  - name: Clínica
+    description: Cadastro, expediente e especialidades somente para consulta.
+  - name: Home
+    description: Resumo mensal e próximas consultas futuras.
+  - name: Calendário
+    description: Contagens por intervalo e detalhes por data marcada.
+  - name: Analytics
+    description: Indicadores, coortes, distribuição e séries calculados a partir do banco.
+  - name: Conversas
+    description: Criação idempotente, leitura de estado e reservas vinculadas ao contato.
+  - name: Bot
+    description: Ações transacionais do atendimento por menus, com revisão e idempotência.
+paths:
+  /api/docs:
+    $ref: ./paths/docs.yaml#/~1api~1docs
+  /health:
+    $ref: ./paths/health.yaml#/~1health
+  /api/clinic:
+    $ref: ./paths/clinic.yaml#/~1api~1clinic
+  /api/dashboard:
+    $ref: ./paths/dashboard.yaml#/~1api~1dashboard
+  /api/calendar:
+    $ref: ./paths/calendar.yaml#/~1api~1calendar
+  /api/calendar/days/{date}:
+    $ref: ./paths/calendar.yaml#/~1api~1calendar~1days~1{date}
+  /api/analytics:
+    $ref: ./paths/analytics.yaml#/~1api~1analytics
+  /api/conversations:
+    $ref: ./paths/conversations.yaml#/~1api~1conversations
+  /api/conversations/{id}:
+    $ref: ./paths/conversations.yaml#/~1api~1conversations~1{id}
+  /api/conversations/{id}/appointments:
+    $ref: ./paths/conversations.yaml#/~1api~1conversations~1{id}~1appointments
+  /api/conversations/{id}/interactions:
+    $ref: ./paths/conversations.yaml#/~1api~1conversations~1{id}~1interactions
+components:
+  schemas:
+    OpenApiDocument:
+      $ref: ./components/schemas/OpenApiDocument.yaml
+    Meta:
+      $ref: ./components/schemas/Meta.yaml
+    NamedResource:
+      $ref: ./components/schemas/NamedResource.yaml
+    Option:
+      $ref: ./components/schemas/Option.yaml
+    OpeningHours:
+      $ref: ./components/schemas/OpeningHours.yaml
+    Clinic:
+      $ref: ./components/schemas/Clinic.yaml
+    AppointmentCounts:
+      $ref: ./components/schemas/AppointmentCounts.yaml
+    AppointmentStatus:
+      $ref: ./components/schemas/AppointmentStatus.yaml
+    UpcomingAppointment:
+      $ref: ./components/schemas/UpcomingAppointment.yaml
+    Appointment:
+      $ref: ./components/schemas/Appointment.yaml
+    Slot:
+      $ref: ./components/schemas/Slot.yaml
+    Dashboard:
+      $ref: ./components/schemas/Dashboard.yaml
+    Calendar:
+      $ref: ./components/schemas/Calendar.yaml
+    RoomDay:
+      $ref: ./components/schemas/RoomDay.yaml
+    Day:
+      $ref: ./components/schemas/Day.yaml
+    AnalyticsKpis:
+      $ref: ./components/schemas/AnalyticsKpis.yaml
+    Analytics:
+      $ref: ./components/schemas/Analytics.yaml
+    Period:
+      $ref: ./components/schemas/Period.yaml
+    PreviousPeriod:
+      $ref: ./components/schemas/PreviousPeriod.yaml
+    Conversation:
+      $ref: ./components/schemas/Conversation.yaml
+    Message:
+      $ref: ./components/schemas/Message.yaml
+    OptionsView:
+      $ref: ./components/schemas/OptionsView.yaml
+    SlotsView:
+      $ref: ./components/schemas/SlotsView.yaml
+    PatientFormView:
+      $ref: ./components/schemas/PatientFormView.yaml
+    AppointmentsView:
+      $ref: ./components/schemas/AppointmentsView.yaml
+    ClinicInformationView:
+      $ref: ./components/schemas/ClinicInformationView.yaml
+    ClosedView:
+      $ref: ./components/schemas/ClosedView.yaml
+    View:
+      $ref: ./components/schemas/View.yaml
+    ConversationDetail:
+      $ref: ./components/schemas/ConversationDetail.yaml
+    ConversationSummary:
+      $ref: ./components/schemas/ConversationSummary.yaml
+    CreateConversation:
+      $ref: ./components/schemas/CreateConversation.yaml
+    CreatedConversation:
+      $ref: ./components/schemas/CreatedConversation.yaml
+    SelectOption:
+      $ref: ./components/schemas/SelectOption.yaml
+    SelectSlot:
+      $ref: ./components/schemas/SelectSlot.yaml
+    SubmitPatient:
+      $ref: ./components/schemas/SubmitPatient.yaml
+    CancelAppointment:
+      $ref: ./components/schemas/CancelAppointment.yaml
+    Exit:
+      $ref: ./components/schemas/Exit.yaml
+    InteractionInput:
+      $ref: ./components/schemas/InteractionInput.yaml
+    InteractionRequest:
+      $ref: ./components/schemas/InteractionRequest.yaml
+    AppointmentConfirmed:
+      $ref: ./components/schemas/AppointmentConfirmed.yaml
+    AppointmentCancelled:
+      $ref: ./components/schemas/AppointmentCancelled.yaml
+    InteractionResponse:
+      $ref: ./components/schemas/InteractionResponse.yaml
+    ErrorCode:
+      $ref: ./components/schemas/ErrorCode.yaml
+    Error:
+      $ref: ./components/schemas/Error.yaml
+    ErrorResponse:
+      $ref: ./components/schemas/ErrorResponse.yaml
+    SlotUnavailable:
+      $ref: ./components/schemas/SlotUnavailable.yaml
+    ClinicResponse:
+      $ref: ./components/schemas/ClinicResponse.yaml
+    DashboardResponse:
+      $ref: ./components/schemas/DashboardResponse.yaml
+    CalendarResponse:
+      $ref: ./components/schemas/CalendarResponse.yaml
+    DayResponse:
+      $ref: ./components/schemas/DayResponse.yaml
+    ConversationListResponse:
+      $ref: ./components/schemas/ConversationListResponse.yaml
+    AppointmentsResponse:
+      $ref: ./components/schemas/AppointmentsResponse.yaml
+    AnalyticsResponse:
+      $ref: ./components/schemas/AnalyticsResponse.yaml
+    Health:
+      $ref: ./components/schemas/Health.yaml
+  parameters:
+    ConversationId:
+      $ref: ./components/parameters.yaml#/ConversationId
+    Month:
+      $ref: ./components/parameters.yaml#/Month
+    StartDate:
+      $ref: ./components/parameters.yaml#/StartDate
+    EndDate:
+      $ref: ./components/parameters.yaml#/EndDate
+    Date:
+      $ref: ./components/parameters.yaml#/Date
+    Period:
+      $ref: ./components/parameters.yaml#/Period
+    Reference:
+      $ref: ./components/parameters.yaml#/Reference
+    Ids:
+      $ref: ./components/parameters.yaml#/Ids
+    RequestId:
+      $ref: ./components/parameters.yaml#/RequestId
+  responses:
+    BadRequest:
+      $ref: ./components/responses.yaml#/BadRequest
+    NotFound:
+      $ref: ./components/responses.yaml#/NotFound
+    Conflict:
+      $ref: ./components/responses.yaml#/Conflict
+    Unprocessable:
+      $ref: ./components/responses.yaml#/Unprocessable
+    PayloadTooLarge:
+      $ref: ./components/responses.yaml#/PayloadTooLarge
+    InternalError:
+      $ref: ./components/responses.yaml#/InternalError
+    ServiceUnavailable:
+      $ref: ./components/responses.yaml#/ServiceUnavailable
+    InteractionConflict:
+      $ref: ./components/responses.yaml#/InteractionConflict
+  headers:
+    RequestId:
+      $ref: ./components/headers.yaml#/RequestId
+  examples:
+    Health:
+      $ref: ./components/examples/Health.yaml
+    Clinic:
+      $ref: ./components/examples/Clinic.yaml
+    Dashboard:
+      $ref: ./components/examples/Dashboard.yaml
+    DashboardPopulated:
+      $ref: ./components/examples/DashboardPopulated.yaml
+    Calendar:
+      $ref: ./components/examples/Calendar.yaml
+    Day:
+      $ref: ./components/examples/Day.yaml
+    Created:
+      $ref: ./components/examples/Created.yaml
+    GreetingReplay:
+      $ref: ./components/examples/GreetingReplay.yaml
+    CreationAfterAction:
+      $ref: ./components/examples/CreationAfterAction.yaml
+    Detail:
+      $ref: ./components/examples/Detail.yaml
+    ConversationList:
+      $ref: ./components/examples/ConversationList.yaml
+    Appointments:
+      $ref: ./components/examples/Appointments.yaml
+    EmptyAppointments:
+      $ref: ./components/examples/EmptyAppointments.yaml
+    Specialty:
+      $ref: ./components/examples/Specialty.yaml
+    VisitKind:
+      $ref: ./components/examples/VisitKind.yaml
+    Slots:
+      $ref: ./components/examples/Slots.yaml
+    NoSlots:
+      $ref: ./components/examples/NoSlots.yaml
+    PatientForm:
+      $ref: ./components/examples/PatientForm.yaml
+    Confirmed:
+      $ref: ./components/examples/Confirmed.yaml
+    ConfirmedAgain:
+      $ref: ./components/examples/ConfirmedAgain.yaml
+    ClinicInformation:
+      $ref: ./components/examples/ClinicInformation.yaml
+    AppointmentView:
+      $ref: ./components/examples/AppointmentView.yaml
+    Cancelled:
+      $ref: ./components/examples/Cancelled.yaml
+    Exited:
+      $ref: ./components/examples/Exited.yaml
+    AbandonedDetail:
+      $ref: ./components/examples/AbandonedDetail.yaml
+    SlotUnavailable:
+      $ref: ./components/examples/SlotUnavailable.yaml
+    SlotUnavailableEmpty:
+      $ref: ./components/examples/SlotUnavailableEmpty.yaml
+    InputSelectOption:
+      $ref: ./components/examples/InputSelectOption.yaml
+    InputSelectSlot:
+      $ref: ./components/examples/InputSelectSlot.yaml
+    InputSubmitPatient:
+      $ref: ./components/examples/InputSubmitPatient.yaml
+    InputCancelAppointment:
+      $ref: ./components/examples/InputCancelAppointment.yaml
+    InputExit:
+      $ref: ./components/examples/InputExit.yaml
+    NewContact:
+      $ref: ./components/examples/NewContact.yaml
+    Analytics:
+      $ref: ./components/examples/Analytics.yaml
+    AnalyticsPopulated:
+      $ref: ./components/examples/AnalyticsPopulated.yaml

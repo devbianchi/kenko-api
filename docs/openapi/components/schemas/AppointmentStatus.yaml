@@ -1,0 +1,7 @@
+type: string
+enum:
+  - pending
+  - complete
+  - cancelled
+description: 'Status derivado: cancelada tem prioridade; completa a partir do instante exato do fim;
+  demais são pendentes.'

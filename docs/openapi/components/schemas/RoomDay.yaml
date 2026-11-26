@@ -1,0 +1,54 @@
+type: object
+description: Todas as salas cadastradas aparecem, inclusive sem consultas ou sem capacidade na data.
+additionalProperties: false
+required:
+  - id
+  - name
+  - appointmentCount
+  - cancelledCount
+  - totalSlots
+  - occupiedSlots
+  - occupancyPercentage
+  - peakHour
+properties:
+  id:
+    type: string
+    description: 'Identificador do recurso. Identificador opaco: use o valor retornado pela API; não
+      extraia a chave numérica.'
+  name:
+    type: string
+    description: Nome de exibição cadastrado no banco.
+  appointmentCount:
+    type: integer
+    minimum: 0
+    description: Consultas da sala, incluindo canceladas.
+  cancelledCount:
+    type: integer
+    minimum: 0
+    description: Consultas canceladas da sala.
+  totalSlots:
+    type: integer
+    minimum: 0
+    description: Horários cadastrados da sala, preservados mesmo após reserva.
+  occupiedSlots:
+    type: integer
+    minimum: 0
+    description: Horários com alguma reserva não cancelada, sem duplicar histórico.
+  occupancyPercentage:
+    anyOf:
+      - type: number
+        minimum: 0
+        maximum: 100
+        description:
+          100 × occupiedSlots / totalSlots; null sem capacidade. Ocupação é por contagem de
+          horários, não por minutos.
+      - type: 'null'
+  peakHour:
+    anyOf:
+      - type: integer
+        minimum: 0
+        maximum: 23
+        description:
+          'Hora local com mais consultas, incluindo canceladas. Empate: mais cedo; null sem
+          consultas.'
+      - type: 'null'

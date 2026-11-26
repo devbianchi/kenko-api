@@ -1,0 +1,15 @@
+type: object
+description: Contexto temporal da leitura. O fuso de negócio independe do fuso do servidor.
+additionalProperties: false
+required:
+  - timezone
+  - evaluatedAt
+properties:
+  timezone:
+    type: string
+    const: America/Sao_Paulo
+    description: Fuso aplicado às regras e às datas locais.
+  evaluatedAt:
+    type: string
+    format: date-time
+    description: Instante de avaliação da resposta. Não é um parâmetro para simular o passado.

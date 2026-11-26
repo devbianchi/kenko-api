@@ -1,0 +1,33 @@
+type: object
+description: Resultado transacional guardado para replay, inclusive após avanço posterior da conversa.
+additionalProperties: false
+required:
+  - conversation
+  - messages
+  - view
+  - availableActions
+  - result
+properties:
+  conversation:
+    $ref: ../../openapi.yaml#/components/schemas/Conversation
+  messages:
+    type: array
+    description: Somente mensagens da ação; replay devolve as mesmas mensagens e ids.
+    items:
+      $ref: ../../openapi.yaml#/components/schemas/Message
+  view:
+    $ref: ../../openapi.yaml#/components/schemas/View
+  availableActions:
+    type: array
+    description: Contém exit enquanto a conversa está ativa; lista vazia quando encerrada ou abandonada.
+    items:
+      type: string
+      const: exit
+      description: Ação global de saída.
+    maxItems: 1
+  result:
+    description: Null nas ações sem confirmação/cancelamento.
+    oneOf:
+      - $ref: ../../openapi.yaml#/components/schemas/AppointmentConfirmed
+      - $ref: ../../openapi.yaml#/components/schemas/AppointmentCancelled
+      - type: 'null'

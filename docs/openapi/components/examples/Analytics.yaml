@@ -1,0 +1,270 @@
+summary: 'Mês sem dados: gráficos completos com zeros e indicadores sem base em null'
+value:
+  meta:
+    timezone: America/Sao_Paulo
+    evaluatedAt: 2026-11-10T12:00:00-03:00
+    period:
+      type: month
+      reference: 2026-10
+      start: 2026-10-01T00:00:00-03:00
+      endExclusive: 2026-11-01T00:00:00-03:00
+    previousPeriod:
+      start: 2026-08-31T00:00:00-03:00
+      endExclusive: 2026-10-01T00:00:00-03:00
+  data:
+    kpis:
+      botCompletion:
+        percentage: null
+        confirmedConversations: 0
+        schedulingConversations: 0
+        previousValue: null
+        difference: null
+        differenceUnit: percentage_points
+      attendanceDuration:
+        statistic: median
+        seconds: null
+        sampleSize: 0
+        previousValue: null
+        difference: null
+        differenceUnit: seconds
+      outsideBusinessHours:
+        percentage: null
+        outsideConversations: 0
+        startedConversations: 0
+        previousValue: null
+        difference: null
+        differenceUnit: percentage_points
+      agendaOccupancy:
+        percentage: null
+        occupiedSlots: 0
+        totalSlots: 0
+        previousValue: null
+        difference: null
+        differenceUnit: percentage_points
+      searchesWithoutSlots:
+        count: 0
+        previousValue: 0
+        difference: 0
+        differenceUnit: count
+    funnel:
+      - stage: started_scheduling
+        count: 0
+        percentage: null
+      - stage: answered_specialty
+        count: 0
+        percentage: null
+      - stage: received_slot_result
+        count: 0
+        percentage: null
+      - stage: selected_slot
+        count: 0
+        percentage: null
+      - stage: confirmed
+        count: 0
+        percentage: null
+    conversationEndings:
+      - stage: triage
+        exited: 0
+        abandoned: 0
+      - stage: slot_selection
+        exited: 0
+        abandoned: 0
+      - stage: patient_data
+        exited: 0
+        abandoned: 0
+      - stage: confirmation
+        exited: 0
+        abandoned: 0
+    durationDistribution:
+      unit: seconds
+      sampleSize: 0
+      median: null
+      p90: null
+      buckets:
+        - label: '1'
+          fromInclusive: 0
+          toExclusive: 60
+          count: 0
+        - label: '2'
+          fromInclusive: 60
+          toExclusive: 120
+          count: 0
+        - label: '3'
+          fromInclusive: 120
+          toExclusive: 180
+          count: 0
+        - label: '4'
+          fromInclusive: 180
+          toExclusive: 240
+          count: 0
+        - label: '5'
+          fromInclusive: 240
+          toExclusive: 300
+          count: 0
+        - label: '6'
+          fromInclusive: 300
+          toExclusive: 360
+          count: 0
+        - label: '7'
+          fromInclusive: 360
+          toExclusive: 420
+          count: 0
+        - label: '8'
+          fromInclusive: 420
+          toExclusive: 480
+          count: 0
+        - label: '9'
+          fromInclusive: 480
+          toExclusive: 540
+          count: 0
+        - label: '10'
+          fromInclusive: 540
+          toExclusive: 600
+          count: 0
+        - label: 10+
+          fromInclusive: 600
+          toExclusive: null
+          count: 0
+    conversationHeatmap:
+      bucketStartHours:
+        - 0
+        - 2
+        - 4
+        - 6
+        - 8
+        - 10
+        - 12
+        - 14
+        - 16
+        - 18
+        - 20
+        - 22
+      rows:
+        - weekday: 1
+          counts:
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+        - weekday: 2
+          counts:
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+        - weekday: 3
+          counts:
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+        - weekday: 4
+          counts:
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+        - weekday: 5
+          counts:
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+        - weekday: 6
+          counts:
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+        - weekday: 0
+          counts:
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+    completionSeries:
+      grouping: month_blocks
+      movingAverageWindow: 3
+      points:
+        - label: 01–07
+          started: 0
+          confirmed: 0
+          percentage: null
+          movingAverage: null
+        - label: 08–14
+          started: 0
+          confirmed: 0
+          percentage: null
+          movingAverage: null
+        - label: 15–21
+          started: 0
+          confirmed: 0
+          percentage: null
+          movingAverage: null
+        - label: 22–28
+          started: 0
+          confirmed: 0
+          percentage: null
+          movingAverage: null
+        - label: 29–31
+          started: 0
+          confirmed: 0
+          percentage: null
+          movingAverage: null
+    searchesWithoutSlotsBySpecialty: []

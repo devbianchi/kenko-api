@@ -1,0 +1,62 @@
+type: object
+description: Resultado da reserva efetivamente persistida. A conversa volta ao menu e permite novas
+  reservas do mesmo paciente.
+additionalProperties: false
+required:
+  - type
+  - appointment
+properties:
+  type:
+    type: string
+    const: appointment_confirmed
+    description: Tipo de resultado.
+  appointment:
+    type: object
+    description: Dados da confirmação, diferentes da representação completa de uma reserva listada.
+    additionalProperties: false
+    required:
+      - id
+      - conversationId
+      - patientId
+      - slotId
+      - status
+      - confirmedAt
+      - startsAt
+      - endsAt
+    properties:
+      id:
+        type: string
+        description:
+          'Reserva criada. Identificador opaco: use o valor retornado pela API; não extraia a
+          chave numérica.'
+      conversationId:
+        type: string
+        description:
+          'Conversa proprietária. Identificador opaco: use o valor retornado pela API; não
+          extraia a chave numérica.'
+      patientId:
+        type: string
+        description:
+          'Paciente da conversa. Identificador opaco: use o valor retornado pela API; não extraia
+          a chave numérica.'
+      slotId:
+        type: string
+        description:
+          'Horário reservado. Identificador opaco: use o valor retornado pela API; não extraia a
+          chave numérica.'
+      status:
+        type: string
+        const: pending
+        description: Status no instante da confirmação.
+      confirmedAt:
+        type: string
+        format: date-time
+        description: Instante de persistência da confirmação.
+      startsAt:
+        type: string
+        format: date-time
+        description: Início marcado.
+      endsAt:
+        type: string
+        format: date-time
+        description: Fim marcado.

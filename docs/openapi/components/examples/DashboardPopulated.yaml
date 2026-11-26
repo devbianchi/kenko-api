@@ -1,0 +1,48 @@
+summary: Mês com consultas e próxima reserva
+value:
+  meta:
+    timezone: America/Sao_Paulo
+    evaluatedAt: 2026-11-10T12:00:00-03:00
+  data:
+    clinic:
+      id: clinic_1
+      name: Clínica Demonstração
+    appointments:
+      total: 4
+      complete: 2
+      pending: 1
+      cancelled: 1
+    bestDay:
+      date: 2026-11-10
+      appointmentCount: 4
+    peakHour:
+      hour: 9
+      appointmentCount: 3
+      otherBusinessHoursAverage: 0.1
+      aboveAverage: 2.9
+    bestRoom:
+      id: room_1
+      name: Sala 1
+      appointmentCount: 4
+    attendanceDuration:
+      statistic: median
+      seconds: 150
+      previousSeconds: 180
+      differenceSeconds: -30
+    upcomingAppointments:
+      - id: ap_1
+        status: pending
+        startsAt: 2026-11-11T09:00:00-03:00
+        endsAt: 2026-11-11T09:30:00-03:00
+        patient:
+          id: pt_1
+          name: Ana Silva
+        specialty:
+          id: sp_2
+          name: Dermatologia
+        doctor:
+          id: dr_1
+          name: Dra. Helena
+        room:
+          id: room_1
+          name: Sala 1

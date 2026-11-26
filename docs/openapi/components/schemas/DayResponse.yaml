@@ -1,0 +1,11 @@
+type: object
+description: Envelope de leitura com contexto temporal e dados.
+additionalProperties: false
+required:
+  - meta
+  - data
+properties:
+  meta:
+    $ref: ../../openapi.yaml#/components/schemas/Meta
+  data:
+    $ref: ../../openapi.yaml#/components/schemas/Day

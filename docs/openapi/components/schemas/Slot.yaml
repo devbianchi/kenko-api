@@ -1,0 +1,28 @@
+type: object
+description: Horário oferecido, ainda sem reserva ou bloqueio temporário. Cada horário tem início e
+  fim próprios, médico e sala definidos.
+additionalProperties: false
+required:
+  - id
+  - startsAt
+  - endsAt
+  - doctor
+  - room
+properties:
+  id:
+    type: string
+    description:
+      'Identificador a enviar em select_slot. Identificador opaco: use o valor retornado pela
+      API; não extraia a chave numérica.'
+  startsAt:
+    type: string
+    format: date-time
+    description: Início futuro no instante da oferta.
+  endsAt:
+    type: string
+    format: date-time
+    description: Fim cadastrado do horário.
+  doctor:
+    $ref: ../../openapi.yaml#/components/schemas/NamedResource
+  room:
+    $ref: ../../openapi.yaml#/components/schemas/NamedResource

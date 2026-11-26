@@ -1,0 +1,25 @@
+summary: 409 sem novas opções retorna aviso para continuar
+value:
+  error:
+    code: SLOT_UNAVAILABLE
+    message: Este horário não está mais disponível.
+  conversation:
+    id: cv_1
+    effectiveStatus: active
+    revision: 5
+    step: continue_after_no_slots
+    attemptId: attempt_1
+  messages:
+    - id: msg_6
+      author: bot
+      text: Olá! Como posso ajudar?
+      sentAt: 2026-11-10T12:00:00-03:00
+  view:
+    type: options
+    searchResult: no_slots
+    options:
+      - id: opt_continue
+        label: Continuar
+  availableActions:
+    - exit
+  result: null

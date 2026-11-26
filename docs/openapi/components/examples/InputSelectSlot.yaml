@@ -1,0 +1,7 @@
+summary: Seleciona horário. Com paciente já identificado, confirma a reserva nesta mesma ação.
+value:
+  actionId: act_select_slot
+  expectedRevision: 3
+  input:
+    type: select_slot
+    slotId: slot_1

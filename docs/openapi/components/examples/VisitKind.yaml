@@ -1,0 +1,23 @@
+summary: Segunda pergunta da triagem
+value:
+  conversation:
+    id: cv_1
+    effectiveStatus: active
+    revision: 2
+    step: visit_kind
+    attemptId: attempt_1
+  messages:
+    - id: msg_3
+      author: bot
+      text: Olá! Como posso ajudar?
+      sentAt: 2026-11-10T12:00:00-03:00
+  view:
+    type: options
+    options:
+      - id: opt_first_visit
+        label: Primeira consulta
+      - id: opt_return
+        label: Retorno
+  availableActions:
+    - exit
+  result: null

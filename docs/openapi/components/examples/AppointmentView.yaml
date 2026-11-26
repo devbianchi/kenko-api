@@ -1,0 +1,39 @@
+summary: Lista restrita à conversa
+value:
+  conversation:
+    id: cv_1
+    effectiveStatus: active
+    revision: 6
+    step: appointments
+    attemptId: null
+  messages:
+    - id: msg_7
+      author: bot
+      text: Olá! Como posso ajudar?
+      sentAt: 2026-11-10T12:00:00-03:00
+  view:
+    type: appointments
+    appointments:
+      - id: ap_1
+        status: pending
+        canCancel: true
+        startsAt: 2026-11-11T09:00:00-03:00
+        endsAt: 2026-11-11T09:30:00-03:00
+        patient:
+          id: pt_1
+          name: Ana Silva
+        specialty:
+          id: sp_2
+          name: Dermatologia
+        doctor:
+          id: dr_1
+          name: Dra. Helena
+        room:
+          id: room_1
+          name: Sala 1
+    options:
+      - id: opt_menu
+        label: Voltar ao menu
+  availableActions:
+    - exit
+  result: null

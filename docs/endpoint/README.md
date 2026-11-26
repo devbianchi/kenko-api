@@ -2,7 +2,7 @@
 
 API REST do sistema de atendimento e agendamento da clínica Kenko. Ela atende o painel (Home, Calendário, Dia e Analytics) e o bot de agendamento do Showcase. Este README documenta os endpoints. As regras de negócio completas estão em `docs/escopo/escopo-kenko-v2.md`, e os detalhes do bot em `docs/especificacao/kenko-bot-api.md`.
 
-> **Status:** contrato de referência. A implementação está em andamento e este documento descreve o comportamento esperado.
+> **Status:** guia narrativo dos contratos. A [especificação OpenAPI](../openapi/README.md), disponível em `GET /api/docs`, descreve as doze operações implementadas, com schemas completos, exemplos e validação automatizada. Diferenças conhecidas entre textos antigos e o código estão registradas no guia da OpenAPI.
 
 ## Sumário
 
@@ -113,6 +113,16 @@ Todo erro segue este formato:
 Uma tabela completa de códigos será mantida junto ao código.
 
 ## Endpoints
+
+### Documentação
+
+#### `GET /api/docs`
+
+Retorna a especificação OpenAPI completa em JSON, sem parâmetros obrigatórios, autenticação,
+acesso ao banco ou envelope `meta/data`. O documento inclui o próprio endpoint e é carregado
+uma única vez a partir do bundle gerado no build. O CORS e `X-Request-Id` seguem as regras globais.
+A página `/docs` do frontend pode consumir `/api/docs` sem disputar o mesmo caminho no backend.
+Consulte o [guia OpenAPI](../openapi/README.md) para geração, inicialização e atualização do documento.
 
 ### Clínica
 

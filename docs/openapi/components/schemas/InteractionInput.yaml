@@ -1,0 +1,16 @@
+description: A entrada deve corresponder ao passo atual; formato inválido retorna 400, ação
+  incompatível retorna 422.
+oneOf:
+  - $ref: ../../openapi.yaml#/components/schemas/SelectOption
+  - $ref: ../../openapi.yaml#/components/schemas/SelectSlot
+  - $ref: ../../openapi.yaml#/components/schemas/SubmitPatient
+  - $ref: ../../openapi.yaml#/components/schemas/CancelAppointment
+  - $ref: ../../openapi.yaml#/components/schemas/Exit
+discriminator:
+  propertyName: type
+  mapping:
+    select_option: ../../openapi.yaml#/components/schemas/SelectOption
+    select_slot: ../../openapi.yaml#/components/schemas/SelectSlot
+    submit_patient: ../../openapi.yaml#/components/schemas/SubmitPatient
+    cancel_appointment: ../../openapi.yaml#/components/schemas/CancelAppointment
+    exit: ../../openapi.yaml#/components/schemas/Exit

@@ -1,0 +1,29 @@
+summary: Busca com horário, sem bloqueio temporário
+value:
+  conversation:
+    id: cv_1
+    effectiveStatus: active
+    revision: 3
+    step: slot_selection
+    attemptId: attempt_1
+  messages:
+    - id: msg_4
+      author: bot
+      text: Olá! Como posso ajudar?
+      sentAt: 2026-11-10T12:00:00-03:00
+  view:
+    type: slots
+    searchResult: available
+    slots:
+      - id: slot_1
+        startsAt: 2026-11-11T09:00:00-03:00
+        endsAt: 2026-11-11T09:30:00-03:00
+        doctor:
+          id: dr_1
+          name: Dra. Helena
+        room:
+          id: room_1
+          name: Sala 1
+  availableActions:
+    - exit
+  result: null

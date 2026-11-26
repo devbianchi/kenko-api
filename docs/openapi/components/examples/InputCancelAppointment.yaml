@@ -1,0 +1,7 @@
+summary: Cancela preservando o histórico e libera o horário se ainda for futuro.
+value:
+  actionId: act_cancel_appointment
+  expectedRevision: 6
+  input:
+    type: cancel_appointment
+    appointmentId: ap_1

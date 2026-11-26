@@ -1,0 +1,15 @@
+extends:
+  - recommended
+apis:
+  kenko:
+    root: docs/openapi/openapi.yaml
+rules:
+  info-license: off
+  # A demonstração é aberta por decisão de escopo; security: [] é explícito.
+  security-defined: off
+  # Ainda não existe URL pública; o único servidor documentado é o desenvolvimento local.
+  no-server-example.com: off
+  no-unused-components: error
+  no-invalid-media-type-examples: error
+  no-invalid-parameter-examples: error
+  no-invalid-schema-examples: error

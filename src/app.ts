@@ -5,14 +5,16 @@ import { createErrorHandler, routeNotFound } from './middlewares/error-handler';
 import { requestId } from './middlewares/request-id';
 import { createApiRouter } from './routes';
 import type { Clock } from './shared/clock';
+import type { DocsService } from './services/docs.service';
 
 export interface AppDependencies {
   pool: Pool;
   clock: Clock;
   corsOrigins: string[];
+  docs?: DocsService;
 }
 
-export function buildApp({ pool, clock, corsOrigins }: AppDependencies): express.Express {
+export function buildApp({ pool, clock, corsOrigins, docs }: AppDependencies): express.Express {
   const app = express();
 
   app.use(requestId);
@@ -32,7 +34,7 @@ export function buildApp({ pool, clock, corsOrigins }: AppDependencies): express
     res.json({ status: 'ok' });
   });
 
-  app.use('/api', createApiRouter({ pool, clock }));
+  app.use('/api', createApiRouter({ pool, clock, docs }));
 
   app.use(routeNotFound);
   app.use(createErrorHandler(clock));

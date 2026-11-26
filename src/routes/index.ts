@@ -5,6 +5,7 @@ import { CalendarController } from '../controllers/calendar.controller';
 import { ClinicController } from '../controllers/clinic.controller';
 import { ConversationController } from '../controllers/conversation.controller';
 import { DashboardController } from '../controllers/dashboard.controller';
+import { DocsController } from '../controllers/docs.controller';
 import { ActionRepository } from '../repositories/action.repository';
 import { AnalyticsRepository } from '../repositories/analytics.repository';
 import { AttemptRepository } from '../repositories/attempt.repository';
@@ -22,6 +23,7 @@ import { CalendarService } from '../services/calendar.service';
 import { ClinicService } from '../services/clinic.service';
 import { ConversationService } from '../services/conversation.service';
 import { DashboardService } from '../services/dashboard.service';
+import { DocsService } from '../services/docs.service';
 import { ConversationViewBuilder } from '../services/conversation-view';
 import { InteractionService } from '../services/interaction.service';
 import type { Clock } from '../shared/clock';
@@ -30,14 +32,20 @@ import { createCalendarRouter } from './calendar.routes';
 import { createClinicRouter } from './clinic.routes';
 import { createConversationRouter } from './conversation.routes';
 import { createDashboardRouter } from './dashboard.routes';
+import { createDocsRouter } from './docs.routes';
 
 export interface RouteDependencies {
   pool: Pool;
   clock: Clock;
+  docs?: DocsService;
 }
 
 /** Monta as camadas de cada recurso e agrega as rotas sob /api. */
-export function createApiRouter({ pool, clock }: RouteDependencies): Router {
+export function createApiRouter({
+  pool,
+  clock,
+  docs = new DocsService(),
+}: RouteDependencies): Router {
   const clinics = new ClinicRepository(pool);
   const roteiro = new RoteiroRepository(pool);
   const conversations = new ConversationRepository(pool);
@@ -82,6 +90,7 @@ export function createApiRouter({ pool, clock }: RouteDependencies): Router {
   );
 
   const router = Router();
+  router.use('/docs', createDocsRouter(new DocsController(docs)));
   router.use('/analytics', createAnalyticsRouter(analyticsController));
   router.use('/calendar', createCalendarRouter(calendarController));
   router.use('/clinic', createClinicRouter(clinicController));

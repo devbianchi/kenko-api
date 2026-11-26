@@ -1,0 +1,48 @@
+description: Dias consecutivos com o mesmo expediente são agrupados, de segunda a domingo. Domingo é
+  0. A abertura está incluída e o fechamento excluído.
+oneOf:
+  - type: object
+    description: Grupo de dias abertos.
+    additionalProperties: false
+    required:
+      - weekdays
+      - opensAt
+      - closesAt
+    properties:
+      weekdays:
+        type: array
+        description: Dias atendidos por este expediente.
+        items:
+          type: integer
+          minimum: 0
+          maximum: 6
+        minItems: 1
+        maxItems: 7
+      opensAt:
+        type: string
+        pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+        description: Abertura local em HH:mm.
+      closesAt:
+        type: string
+        pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+        description: Fechamento local em HH:mm.
+  - type: object
+    description: Grupo de dias sem expediente.
+    additionalProperties: false
+    required:
+      - weekdays
+      - closed
+    properties:
+      weekdays:
+        type: array
+        description: Dias fechados.
+        items:
+          type: integer
+          minimum: 0
+          maximum: 6
+        minItems: 1
+        maxItems: 7
+      closed:
+        type: boolean
+        const: true
+        description: Indica ausência de expediente.

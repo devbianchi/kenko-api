@@ -1,0 +1,57 @@
+/api/docs:
+  get:
+    operationId: getOpenApiDocument
+    tags:
+      - Documentação
+    summary: Consultar a especificação OpenAPI completa em JSON
+    description: >-
+      Entrega o documento OpenAPI 3.1.0 gerado a partir dos arquivos versionados em docs/openapi.
+      O corpo é o próprio documento, sem envelope meta/data, pronto para uma página customizada
+      no frontend ou outro consumidor OpenAPI. Contém todas as operações, inclusive este endpoint,
+      com referências internas resolvidas para o mesmo documento; não exige buscar arquivos YAML.
+
+      Não consulta o banco, não altera conversas e não gera HTML. O bundle é gerado antes de dev/build,
+      validado e carregado antes de o servidor abrir a porta. Requisições reutilizam o documento em
+      memória; após editar a fonte, gere novamente e reinicie a API. A URL /docs do frontend pode
+      consumir este recurso por request('/docs') quando VITE_API_URL termina em /api.
+
+      Segue o CORS e o X-Request-Id globais da aplicação. Ausência ou formato inválido do arquivo
+      impede a inicialização normal do servidor; um erro inesperado durante a operação usa o
+      envelope comum INTERNAL_ERROR. Os erros 400 e 413 são do parser JSON global, apenas se um
+      corpo inválido ou excessivo for enviado; esta leitura não exige corpo.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/RequestId
+    responses:
+      '200':
+        description: Documento OpenAPI completo da versão executada da API.
+        headers:
+          X-Request-Id:
+            $ref: ../openapi.yaml#/components/headers/RequestId
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/OpenApiDocument
+            examples:
+              ReducedDocument:
+                summary: Exemplo reduzido do documento; o retorno real inclui as doze operações.
+                description: >-
+                  Este exemplo mostra o formato raiz, não uma cópia integral da especificação.
+                  A resposta real também contém componentes, tags, exemplos, servidores e todos
+                  os caminhos, sem depender de referências a arquivos externos.
+                value:
+                  openapi: 3.1.0
+                  info:
+                    title: Kenko API
+                    version: 0.1.0
+                  paths:
+                    /health:
+                      get:
+                        responses:
+                          '200':
+                            description: Processo HTTP disponível.
+      '400':
+        $ref: ../openapi.yaml#/components/responses/BadRequest
+      '413':
+        $ref: ../openapi.yaml#/components/responses/PayloadTooLarge
+      '500':
+        $ref: ../openapi.yaml#/components/responses/InternalError

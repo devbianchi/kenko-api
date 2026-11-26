@@ -1,0 +1,23 @@
+summary: Reserva pendente elegível para cancelamento
+value:
+  meta:
+    timezone: America/Sao_Paulo
+    evaluatedAt: 2026-11-10T12:00:00-03:00
+  data:
+    - id: ap_1
+      status: pending
+      canCancel: true
+      startsAt: 2026-11-11T09:00:00-03:00
+      endsAt: 2026-11-11T09:30:00-03:00
+      patient:
+        id: pt_1
+        name: Ana Silva
+      specialty:
+        id: sp_2
+        name: Dermatologia
+      doctor:
+        id: dr_1
+        name: Dra. Helena
+      room:
+        id: room_1
+        name: Sala 1

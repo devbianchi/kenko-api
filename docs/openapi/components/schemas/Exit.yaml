@@ -1,0 +1,9 @@
+type: object
+description: Encerra imediatamente qualquer passo ativo, envia adeus e não cancela reservas.
+required:
+  - type
+properties:
+  type:
+    type: string
+    const: exit
+    description: Discriminador da entrada.

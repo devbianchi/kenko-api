@@ -1,0 +1,23 @@
+type: object
+description: Opções do roteiro; no aviso de busca vazia, searchResult=no_slots e opt_continue
+  permite retornar ao menu.
+additionalProperties: false
+required:
+  - type
+  - options
+properties:
+  type:
+    type: string
+    const: options
+    description: Tipo de controle a apresentar.
+  options:
+    type: array
+    description: Opções permitidas neste passo; não deduza os ids a partir dos rótulos.
+    items:
+      $ref: ../../openapi.yaml#/components/schemas/Option
+  searchResult:
+    type: string
+    enum:
+      - available
+      - no_slots
+    description: Resultado da busca quando aplicável.

@@ -1,0 +1,77 @@
+type: object
+description: Leitura sem mensagens novas, sem avanço e sem renovar a atividade.
+additionalProperties: false
+required:
+  - conversation
+  - view
+  - availableActions
+properties:
+  conversation:
+    type: object
+    description: Estado com instantes de início e última atividade.
+    additionalProperties: false
+    required:
+      - id
+      - effectiveStatus
+      - revision
+      - step
+      - attemptId
+      - startedAt
+      - lastInteractionAt
+    properties:
+      id:
+        type: string
+        description:
+          'Identificador da conversa. Identificador opaco: use o valor retornado pela API; não
+          extraia a chave numérica.'
+      effectiveStatus:
+        type: string
+        enum:
+          - active
+          - closed
+          - abandoned
+        description:
+          Closed por saída explícita; abandoned se inatividade estritamente maior que uma hora. O
+          abandono é derivado e não reabre.
+      revision:
+        type: integer
+        minimum: 0
+        description: Versão atual; envie como expectedRevision na próxima ação nova.
+      step:
+        type: string
+        enum:
+          - menu
+          - specialty
+          - visit_kind
+          - slot_selection
+          - patient_data
+          - confirmation
+          - appointments
+          - continue_after_no_slots
+          - closed
+        description: Passo técnico. Informações da clínica são publicadas com step=menu.
+      attemptId:
+        anyOf:
+          - type: string
+            description:
+              'Tentativa atual de agendamento; null fora de tentativa. Identificador opaco: use o
+              valor retornado pela API; não extraia a chave numérica.'
+          - type: 'null'
+      startedAt:
+        type: string
+        format: date-time
+        description: Início original da conversa.
+      lastInteractionAt:
+        type: string
+        format: date-time
+        description: Última interação efetiva, não a última leitura ou reenvio.
+  view:
+    $ref: ../../openapi.yaml#/components/schemas/View
+  availableActions:
+    type: array
+    description: Contém exit enquanto a conversa está ativa; lista vazia quando encerrada ou abandonada.
+    items:
+      type: string
+      const: exit
+      description: Ação global de saída.
+    maxItems: 1

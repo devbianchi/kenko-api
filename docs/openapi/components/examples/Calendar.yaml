@@ -1,0 +1,9 @@
+summary: Datas ausentes do mapa equivalem a zero
+value:
+  meta:
+    timezone: America/Sao_Paulo
+    evaluatedAt: 2026-11-10T12:00:00-03:00
+  data:
+    today: 2026-11-10
+    countsByDate:
+      2026-11-10: 4

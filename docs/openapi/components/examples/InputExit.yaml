@@ -1,0 +1,6 @@
+summary: Encerra imediatamente qualquer passo ativo, envia adeus e não cancela reservas.
+value:
+  actionId: act_exit
+  expectedRevision: 7
+  input:
+    type: exit

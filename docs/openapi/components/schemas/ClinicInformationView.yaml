@@ -1,0 +1,21 @@
+type: object
+description: Informações da clínica sem abandonar o menu.
+additionalProperties: false
+required:
+  - type
+  - clinic
+  - options
+properties:
+  type:
+    type: string
+    const: clinic_information
+    description: Tipo de controle.
+  clinic:
+    anyOf:
+      - $ref: ../../openapi.yaml#/components/schemas/Clinic
+      - type: 'null'
+  options:
+    type: array
+    description: Opções permitidas neste passo; não deduza os ids a partir dos rótulos.
+    items:
+      $ref: ../../openapi.yaml#/components/schemas/Option

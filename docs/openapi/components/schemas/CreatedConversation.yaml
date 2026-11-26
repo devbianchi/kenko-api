@@ -1,0 +1,27 @@
+type: object
+description: Criação ou replay. Não usa envelope meta/data nem campo result.
+additionalProperties: false
+required:
+  - conversation
+  - messages
+  - view
+  - availableActions
+properties:
+  conversation:
+    $ref: ../../openapi.yaml#/components/schemas/Conversation
+  messages:
+    type: array
+    description: Boas-vindas e menu. Replay antes de qualquer ação do paciente devolve a saudação
+      original; depois, lista vazia.
+    items:
+      $ref: ../../openapi.yaml#/components/schemas/Message
+  view:
+    $ref: ../../openapi.yaml#/components/schemas/View
+  availableActions:
+    type: array
+    description: Contém exit enquanto a conversa está ativa; lista vazia quando encerrada ou abandonada.
+    items:
+      type: string
+      const: exit
+      description: Ação global de saída.
+    maxItems: 1

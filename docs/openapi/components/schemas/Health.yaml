@@ -1,0 +1,10 @@
+type: object
+description: Verifica se o processo HTTP está respondendo. Não testa conexão com o banco e não usa meta/data.
+additionalProperties: false
+required:
+  - status
+properties:
+  status:
+    type: string
+    const: ok
+    description: Processo HTTP disponível.

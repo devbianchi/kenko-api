@@ -1,0 +1,33 @@
+/api/clinic:
+  get:
+    operationId: getClinic
+    tags:
+      - Clínica
+    summary: Consultar cadastro, expediente e especialidades
+    description: Lê a clínica do banco, com expediente agrupado e ids das especialidades usados pela
+      triagem. Clínica ausente retorna CLINIC_NOT_FOUND. A leitura não altera o estado de conversas.
+    responses:
+      '200':
+        description: Operação concluída.
+        headers:
+          X-Request-Id:
+            $ref: ../openapi.yaml#/components/headers/RequestId
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/ClinicResponse
+            examples:
+              Clinic:
+                $ref: ../openapi.yaml#/components/examples/Clinic
+      '400':
+        $ref: ../openapi.yaml#/components/responses/BadRequest
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '413':
+        $ref: ../openapi.yaml#/components/responses/PayloadTooLarge
+      '500':
+        $ref: ../openapi.yaml#/components/responses/InternalError
+      '503':
+        $ref: ../openapi.yaml#/components/responses/ServiceUnavailable
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/RequestId

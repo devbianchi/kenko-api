@@ -1,0 +1,15 @@
+type: object
+description: Escolhe menu, especialidade, primeira consulta/retorno ou continuar.
+required:
+  - type
+  - optionId
+properties:
+  type:
+    type: string
+    const: select_option
+    description: Discriminador da entrada.
+  optionId:
+    type: string
+    minLength: 1
+    maxLength: 64
+    description: Id da opção recebida na view atual; especialidades usam ids como sp_2.

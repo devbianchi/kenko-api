@@ -1,0 +1,22 @@
+summary: Busca vazia não encerra a conversa
+value:
+  conversation:
+    id: cv_1
+    effectiveStatus: active
+    revision: 3
+    step: continue_after_no_slots
+    attemptId: attempt_1
+  messages:
+    - id: msg_4
+      author: bot
+      text: Olá! Como posso ajudar?
+      sentAt: 2026-11-10T12:00:00-03:00
+  view:
+    type: options
+    searchResult: no_slots
+    options:
+      - id: opt_continue
+        label: Continuar
+  availableActions:
+    - exit
+  result: null

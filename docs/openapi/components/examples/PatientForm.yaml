@@ -1,0 +1,35 @@
+summary: Primeira reserva pede dados após escolher horário
+value:
+  conversation:
+    id: cv_1
+    effectiveStatus: active
+    revision: 4
+    step: patient_data
+    attemptId: attempt_1
+  messages:
+    - id: msg_5
+      author: bot
+      text: Olá! Como posso ajudar?
+      sentAt: 2026-11-10T12:00:00-03:00
+  view:
+    type: patient_form
+    fields:
+      - name: name
+        type: text
+        required: true
+      - name: birthDate
+        type: date
+        required: true
+    selectedSlot:
+      id: slot_1
+      startsAt: 2026-11-11T09:00:00-03:00
+      endsAt: 2026-11-11T09:30:00-03:00
+      doctor:
+        id: dr_1
+        name: Dra. Helena
+      room:
+        id: room_1
+        name: Sala 1
+  availableActions:
+    - exit
+  result: null

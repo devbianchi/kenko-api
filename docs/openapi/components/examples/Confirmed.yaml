@@ -1,0 +1,35 @@
+summary: Primeira reserva persiste e retorna ao menu
+value:
+  conversation:
+    id: cv_1
+    effectiveStatus: active
+    revision: 5
+    step: menu
+    attemptId: null
+  messages:
+    - id: msg_6
+      author: bot
+      text: Olá! Como posso ajudar?
+      sentAt: 2026-11-10T12:00:00-03:00
+  view:
+    type: options
+    options:
+      - id: opt_schedule
+        label: Agendar uma consulta
+      - id: opt_clinic_info
+        label: Ver informações da clínica
+      - id: opt_appointments
+        label: Ver ou cancelar um agendamento
+  availableActions:
+    - exit
+  result:
+    type: appointment_confirmed
+    appointment:
+      id: ap_1
+      conversationId: cv_1
+      patientId: pt_1
+      slotId: slot_1
+      status: pending
+      confirmedAt: 2026-11-10T12:00:00-03:00
+      startsAt: 2026-11-11T09:00:00-03:00
+      endsAt: 2026-11-11T09:30:00-03:00

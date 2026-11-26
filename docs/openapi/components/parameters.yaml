@@ -1,0 +1,116 @@
+ConversationId:
+  name: id
+  in: path
+  required: true
+  description: Id opaco retornado na criação. Id malformado ou inexistente recebe 404 CONVERSATION_NOT_FOUND.
+  schema:
+    type: string
+  example: cv_1
+Month:
+  name: month
+  in: query
+  required: true
+  description: Mês das consultas e da coorte de duração, em YYYY-MM, ano diferente de 0000. A API
+    aceita mês futuro; limites de navegação do frontend não são validações deste endpoint.
+  schema:
+    type: string
+    pattern: ^(?!0000)[0-9]{4}-(0[1-9]|1[0-2])$
+  example: 2026-11
+StartDate:
+  name: startDate
+  in: query
+  required: true
+  description: Primeiro dia local incluído na contagem; precisa existir no calendário.
+  schema:
+    type: string
+    format: date
+  example: 2026-11-01
+EndDate:
+  name: endDateExclusive
+  in: query
+  required: true
+  description: Primeiro dia excluído; deve ser posterior a startDate. Pode incluir dias de meses
+    vizinhos para cobrir a grade.
+  schema:
+    type: string
+    format: date
+  example: 2026-12-01
+Date:
+  name: date
+  in: path
+  required: true
+  description: Data marcada a detalhar, em America/Sao_Paulo. Data real YYYY-MM-DD; sem consultas
+    retorna 200 com zeros e salas cadastradas.
+  schema:
+    type: string
+    format: date
+  example: 2026-11-10
+Period:
+  name: period
+  in: query
+  required: true
+  description:
+    Filtro da janela. Week termina em reference e inclui os seis dias anteriores; month usa
+    mês civil; year usa doze meses, ou janeiro até o mês atual no ano corrente.
+  schema:
+    type: string
+    enum:
+      - week
+      - month
+      - year
+  example: month
+Reference:
+  name: reference
+  in: query
+  required: true
+  description: 'Depende de period: week=YYYY-MM-DD, month=YYYY-MM, year=YYYY. Referência futura é
+    recusada conforme dia/mês/ano atual de Brasília. A API não impõe o mínimo de janeiro de 2024 da
+    interface.'
+  schema:
+    type: string
+    oneOf:
+      - pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+      - pattern: ^[0-9]{4}-[0-9]{2}$
+      - pattern: ^[0-9]{4}$
+  examples:
+    week:
+      value: 2026-11-10
+      summary: Último dia da janela de sete dias
+    month:
+      value: 2026-10
+      summary: Mês completo
+    year:
+      value: '2026'
+      summary: Ano até o mês atual
+Ids:
+  name: ids
+  in: query
+  required: true
+  style: form
+  explode: false
+  description:
+    De 1 a 50 ids separados por vírgula. Espaços nas extremidades são removidos. Repetidos
+    contam no limite de entrada e são deduplicados; inexistentes são omitidos, mantendo a ordem da
+    requisição.
+  schema:
+    type: array
+    minItems: 1
+    maxItems: 50
+    items:
+      type: string
+      pattern: ^cv_[1-9][0-9]*$
+  example:
+    - cv_1
+    - cv_2
+RequestId:
+  name: X-Request-Id
+  in: header
+  required: false
+  description: 'Correlação opcional. Se contiver de 1 a 64 letras, números, ponto, sublinhado ou
+    hífen, o servidor o devolve; valor inválido é substituído por um novo, sem erro de validação. O
+    CORS atual admite Content-Type nas requisições do navegador: enviar este cabeçalho personalizado
+    entre origens exige configuração adicional, embora a leitura do cabeçalho de resposta já seja
+    exposta.'
+  schema:
+    type: string
+  example: documentacao-exemplo-1

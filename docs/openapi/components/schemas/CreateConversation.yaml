@@ -1,0 +1,11 @@
+type: object
+description: Cria uma conversa para um contato simulado novo. Repetir o contato devolve a conversa
+  existente; não abre outra nem renova sua atividade.
+required:
+  - contactId
+properties:
+  contactId:
+    type: string
+    minLength: 1
+    maxLength: 64
+    description: Identificador gerado no frontend para cada nova conversa. Não precisa ser telefone real.

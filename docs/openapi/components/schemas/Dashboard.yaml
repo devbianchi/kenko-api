@@ -1,0 +1,128 @@
+type: object
+description: Resumo do mês das consultas e duração até a primeira confirmação das conversas
+  iniciadas no mês. Totais e rankings incluem canceladas.
+additionalProperties: false
+required:
+  - clinic
+  - appointments
+  - bestDay
+  - peakHour
+  - bestRoom
+  - attendanceDuration
+  - upcomingAppointments
+properties:
+  clinic:
+    $ref: ../../openapi.yaml#/components/schemas/NamedResource
+  appointments:
+    $ref: ../../openapi.yaml#/components/schemas/AppointmentCounts
+  bestDay:
+    anyOf:
+      - type: object
+        description: Dia com mais consultas; empate escolhe a data mais cedo.
+        additionalProperties: false
+        required:
+          - date
+          - appointmentCount
+        properties:
+          date:
+            type: string
+            format: date
+            description: Data marcada da consulta.
+          appointmentCount:
+            type: integer
+            minimum: 0
+            description: Quantidade de consultas, incluindo canceladas.
+      - type: 'null'
+  peakHour:
+    anyOf:
+      - type: object
+        description:
+          Hora com mais consultas dentro das horas de expediente semanal. Empate escolhe a hora
+          mais cedo.
+        additionalProperties: false
+        required:
+          - hour
+          - appointmentCount
+          - otherBusinessHoursAverage
+          - aboveAverage
+        properties:
+          hour:
+            type: integer
+            minimum: 0
+            maximum: 23
+            description: Hora local de início.
+          appointmentCount:
+            type: integer
+            minimum: 0
+            description: Consultas nesta hora.
+          otherBusinessHoursAverage:
+            type: number
+            description: Média das outras horas de expediente; inclui horas sem consultas como zero.
+          aboveAverage:
+            type: number
+            description: Quantidade no pico menos a média das outras horas.
+      - type: 'null'
+  bestRoom:
+    anyOf:
+      - type: object
+        description: Sala com mais consultas; empate escolhe o menor id interno.
+        additionalProperties: false
+        required:
+          - id
+          - name
+          - appointmentCount
+        properties:
+          id:
+            type: string
+            description:
+              'Identificador do recurso. Identificador opaco: use o valor retornado pela API; não
+              extraia a chave numérica.'
+          name:
+            type: string
+            description: Nome de exibição cadastrado no banco.
+          appointmentCount:
+            type: integer
+            minimum: 0
+            description: Consultas da sala no mês, incluindo canceladas.
+      - type: 'null'
+  attendanceDuration:
+    type: object
+    description:
+      Mediana do início da conversa até sua primeira confirmação. Cada conversa contribui uma
+      amostra; não é a duração da consulta.
+    additionalProperties: false
+    required:
+      - statistic
+      - seconds
+      - previousSeconds
+      - differenceSeconds
+    properties:
+      statistic:
+        type: string
+        const: median
+        description: Estatística usada.
+      seconds:
+        anyOf:
+          - type: number
+            minimum: 0
+            description: Mediana atual em segundos; null sem amostras.
+          - type: 'null'
+      previousSeconds:
+        anyOf:
+          - type: number
+            minimum: 0
+            description: Mediana do mês anterior.
+          - type: 'null'
+      differenceSeconds:
+        anyOf:
+          - type: number
+            description: Atual menos anterior; negativo indica redução. Null se qualquer mediana não existir.
+          - type: 'null'
+  upcomingAppointments:
+    type: array
+    description:
+      Até cinco reservas pendentes com início futuro, em ordem cronológica; não depende do
+      mês solicitado.
+    items:
+      $ref: ../../openapi.yaml#/components/schemas/UpcomingAppointment
+    maxItems: 5

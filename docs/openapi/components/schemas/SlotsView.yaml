@@ -1,0 +1,23 @@
+type: object
+description: 'Até três horários: dois dias distintos da semana atual e um horário da próxima. Semana
+  domingo–sábado; não preencher faltas fora da distribuição.'
+additionalProperties: false
+required:
+  - type
+  - searchResult
+  - slots
+properties:
+  type:
+    type: string
+    const: slots
+    description: Tipo de controle.
+  searchResult:
+    type: string
+    const: available
+    description: A busca encontrou opções.
+  slots:
+    type: array
+    description: Ofertas em ordem cronológica; seleção não garante disponibilidade até confirmar.
+    items:
+      $ref: ../../openapi.yaml#/components/schemas/Slot
+    maxItems: 3

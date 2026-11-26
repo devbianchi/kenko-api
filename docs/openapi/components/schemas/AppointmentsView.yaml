@@ -1,0 +1,22 @@
+type: object
+description: Reservas da própria conversa e opções para continuar.
+additionalProperties: false
+required:
+  - type
+  - appointments
+  - options
+properties:
+  type:
+    type: string
+    const: appointments
+    description: Tipo de controle.
+  appointments:
+    type: array
+    description: Reservas, incluindo completas e canceladas.
+    items:
+      $ref: ../../openapi.yaml#/components/schemas/Appointment
+  options:
+    type: array
+    description: Opções permitidas neste passo; não deduza os ids a partir dos rótulos.
+    items:
+      $ref: ../../openapi.yaml#/components/schemas/Option

@@ -1,0 +1,23 @@
+summary: Mês sem consultas, preservando ausência de base
+value:
+  meta:
+    timezone: America/Sao_Paulo
+    evaluatedAt: 2026-11-10T12:00:00-03:00
+  data:
+    clinic:
+      id: clinic_1
+      name: Clínica Demonstração
+    appointments:
+      total: 0
+      complete: 0
+      pending: 0
+      cancelled: 0
+    bestDay: null
+    peakHour: null
+    bestRoom: null
+    attendanceDuration:
+      statistic: median
+      seconds: null
+      previousSeconds: null
+      differenceSeconds: null
+    upcomingAppointments: []

@@ -1,0 +1,276 @@
+type: object
+description: Indicadores calculados do banco. Conversas pertencem à coorte da data de início;
+  resultados posteriores conhecidos ficam nela. Reservas e buscas usam suas próprias datas. Não
+  inclui nomes de pacientes nem transcrições.
+additionalProperties: false
+required:
+  - kpis
+  - funnel
+  - conversationEndings
+  - durationDistribution
+  - conversationHeatmap
+  - completionSeries
+  - searchesWithoutSlotsBySpecialty
+properties:
+  kpis:
+    $ref: ../../openapi.yaml#/components/schemas/AnalyticsKpis
+  funnel:
+    type: array
+    description: Cinco marcos, sem somar tentativas repetidas.
+    items:
+      type: object
+      description: Marco por conversa distinta; recebeu resultado inclui busca sem horários.
+      additionalProperties: false
+      required:
+        - stage
+        - count
+        - percentage
+      properties:
+        stage:
+          type: string
+          enum:
+            - started_scheduling
+            - answered_specialty
+            - received_slot_result
+            - selected_slot
+            - confirmed
+          description: Marco do fluxo em ordem de progressão.
+        count:
+          type: integer
+          minimum: 0
+          description: Conversas que alcançaram o marco.
+        percentage:
+          anyOf:
+            - type: number
+              minimum: 0
+              maximum: 100
+              description: Percentual sobre started_scheduling; null sem base.
+            - type: 'null'
+    minItems: 5
+    maxItems: 5
+  conversationEndings:
+    type: array
+    description: Quatro etapas, inclusive com contagem zero.
+    items:
+      type: object
+      description: Términos durante o agendamento. Saída ou abandono no menu ficam fora.
+      additionalProperties: false
+      required:
+        - stage
+        - exited
+        - abandoned
+      properties:
+        stage:
+          type: string
+          enum:
+            - triage
+            - slot_selection
+            - patient_data
+            - confirmation
+          description: Etapa analítica de término.
+        exited:
+          type: integer
+          minimum: 0
+          description: Saídas voluntárias nesta etapa.
+        abandoned:
+          type: integer
+          minimum: 0
+          description: Abandonos derivados nesta etapa.
+    minItems: 4
+    maxItems: 4
+  durationDistribution:
+    type: object
+    description:
+      Distribuição da duração até a primeira confirmação. P90 é o elemento ceil(0,90 × N),
+      com posição iniciada em 1.
+    additionalProperties: false
+    required:
+      - unit
+      - sampleSize
+      - median
+      - p90
+      - buckets
+    properties:
+      unit:
+        type: string
+        const: seconds
+        description: Unidade dos limites e estatísticas.
+      sampleSize:
+        type: integer
+        minimum: 0
+        description: Número de conversas confirmadas.
+      median:
+        anyOf:
+          - type: number
+            minimum: 0
+            description: Mediana; null sem amostras.
+          - type: 'null'
+      p90:
+        anyOf:
+          - type: number
+            minimum: 0
+            description: Percentil por posto mais próximo; null sem amostras.
+          - type: 'null'
+      buckets:
+        type: array
+        description: 'Onze faixas: [0,60), ... [540,600), [600,+infinito).'
+        items:
+          type: object
+          description: Faixa com início incluído e fim excluído.
+          additionalProperties: false
+          required:
+            - label
+            - fromInclusive
+            - toExclusive
+            - count
+          properties:
+            label:
+              type: string
+              description: Rótulos 1 a 10 e 10+; exatamente 600 segundos pertence a 10+.
+            fromInclusive:
+              type: integer
+              minimum: 0
+              description: Limite inferior em segundos.
+            toExclusive:
+              anyOf:
+                - type: integer
+                  minimum: 0
+                  description: Limite superior em segundos; null indica sem limite.
+                - type: 'null'
+            count:
+              type: integer
+              minimum: 0
+              description: Amostras na faixa.
+        minItems: 11
+        maxItems: 11
+  conversationHeatmap:
+    type: object
+    description:
+      Inícios de conversa por dia da semana e faixa de duas horas, incluindo horários fora do
+      expediente.
+    additionalProperties: false
+    required:
+      - bucketStartHours
+      - rows
+    properties:
+      bucketStartHours:
+        type: array
+        description: Inícios 0, 2, 4, ... 22.
+        items:
+          type: integer
+          minimum: 0
+          maximum: 22
+        minItems: 12
+        maxItems: 12
+      rows:
+        type: array
+        description: Sete linhas na ordem 1,2,3,4,5,6,0.
+        items:
+          type: object
+          description: Linha de um dia da semana.
+          additionalProperties: false
+          required:
+            - weekday
+            - counts
+          properties:
+            weekday:
+              type: integer
+              minimum: 0
+              maximum: 6
+              description: 1 segunda a 6 sábado; 0 domingo, exibido por último.
+            counts:
+              type: array
+              description: Doze contagens alinhadas com bucketStartHours.
+              items:
+                type: integer
+                minimum: 0
+                description: Conversas na faixa correspondente.
+              minItems: 12
+              maxItems: 12
+        minItems: 7
+        maxItems: 7
+  completionSeries:
+    type: object
+    description:
+      Conclusão por coorte de início, com média dos percentuais calculáveis dos últimos três
+      pontos, incluindo o atual.
+    additionalProperties: false
+    required:
+      - grouping
+      - movingAverageWindow
+      - points
+    properties:
+      grouping:
+        type: string
+        enum:
+          - daily
+          - month_blocks
+          - monthly
+        description: 'Semana: dias; mês: blocos 01–07, 08–14, 15–21, 22–28 e 29–fim; ano: meses.'
+      movingAverageWindow:
+        type: number
+        const: 3
+        description: Janela de três pontos; nulls são ignorados, sem base a média é null.
+      points:
+        type: array
+        description: Pontos em ordem cronológica.
+        items:
+          type: object
+          description: Ponto da série, inclusive blocos sem conversas.
+          additionalProperties: false
+          required:
+            - label
+            - started
+            - confirmed
+            - percentage
+            - movingAverage
+          properties:
+            label:
+              type: string
+              description: Semana DD/MM; mês DD–DD; ano MM/YYYY.
+            started:
+              type: integer
+              minimum: 0
+              description: Conversas que escolheram Agendar, agrupadas pela data de início.
+            confirmed:
+              type: integer
+              minimum: 0
+              description: Dessas conversas, as que confirmaram ao menos uma reserva.
+            percentage:
+              anyOf:
+                - type: number
+                  minimum: 0
+                  maximum: 100
+                  description: 100 × confirmed / started; null sem base.
+                - type: 'null'
+            movingAverage:
+              anyOf:
+                - type: number
+                  minimum: 0
+                  maximum: 100
+                  description: Média dos percentuais calculáveis na janela móvel.
+                - type: 'null'
+  searchesWithoutSlotsBySpecialty:
+    type: array
+    description: A soma das contagens coincide com kpis.searchesWithoutSlots.count.
+    items:
+      type: object
+      description: Ocorrências por especialidade, sem deduplicar por conversa.
+      additionalProperties: false
+      required:
+        - specialtyId
+        - name
+        - count
+      properties:
+        specialtyId:
+          type: string
+          description:
+            'Identificador da especialidade. Identificador opaco: use o valor retornado pela API;
+            não extraia a chave numérica.'
+        name:
+          type: string
+          description: Nome da especialidade.
+        count:
+          type: integer
+          minimum: 0
+          description: Buscas sem horário na janela.

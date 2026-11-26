@@ -1,0 +1,15 @@
+type: object
+description: Seleciona horário. Com paciente já identificado, confirma a reserva nesta mesma ação.
+required:
+  - type
+  - slotId
+properties:
+  type:
+    type: string
+    const: select_slot
+    description: Discriminador da entrada.
+  slotId:
+    type: string
+    minLength: 1
+    maxLength: 64
+    description: Id de um horário oferecido na tentativa atual.

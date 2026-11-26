@@ -1,0 +1,569 @@
+BadRequest:
+  description: Formato ou validação inválida. Corrija os campos indicados antes de reenviar. JSON
+    inválido é processado pelo middleware antes das rotas.
+  headers:
+    X-Request-Id:
+      $ref: ../openapi.yaml#/components/headers/RequestId
+  content:
+    application/json:
+      schema:
+        type: object
+        description: Erro desta categoria HTTP.
+        additionalProperties: false
+        required:
+          - error
+        properties:
+          error:
+            type: object
+            description: Detalhes do erro.
+            additionalProperties: false
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: string
+                enum:
+                  - INVALID_JSON
+                  - MISSING_PARAMETER
+                  - INVALID_DATE
+                  - INVALID_MONTH
+                  - INVALID_DATE_RANGE
+                  - INVALID_PERIOD
+                  - FUTURE_PERIOD
+                  - INVALID_IDS
+                  - INVALID_NAME
+                  - INVALID_BIRTH_DATE
+                  - INVALID_INPUT_TYPE
+                description: Códigos deste status; consulte os códigos aplicáveis na descrição da operação.
+              message:
+                type: string
+                description: Descrição legível em português.
+              fields:
+                type: object
+                description: Mapa opcional de campo para motivo; pode usar caminhos como patient.name.
+                additionalProperties:
+                  type: string
+        allOf:
+          - $ref: ../openapi.yaml#/components/schemas/ErrorResponse
+      examples:
+        INVALID_JSON:
+          summary: O corpo não é JSON válido.
+          value:
+            error:
+              code: INVALID_JSON
+              message: O corpo não é JSON válido.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        MISSING_PARAMETER:
+          summary: Campo ou parâmetro obrigatório ausente.
+          value:
+            error:
+              code: MISSING_PARAMETER
+              message: Campo ou parâmetro obrigatório ausente.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        INVALID_DATE:
+          summary: Data inexistente ou fora de YYYY-MM-DD.
+          value:
+            error:
+              code: INVALID_DATE
+              message: Data inexistente ou fora de YYYY-MM-DD.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        INVALID_MONTH:
+          summary: Mês inexistente ou fora de YYYY-MM.
+          value:
+            error:
+              code: INVALID_MONTH
+              message: Mês inexistente ou fora de YYYY-MM.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        INVALID_DATE_RANGE:
+          summary: O fim exclusivo deve ser posterior ao início.
+          value:
+            error:
+              code: INVALID_DATE_RANGE
+              message: O fim exclusivo deve ser posterior ao início.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        INVALID_PERIOD:
+          summary: Período desconhecido ou referência incompatível com o filtro.
+          value:
+            error:
+              code: INVALID_PERIOD
+              message: Período desconhecido ou referência incompatível com o filtro.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        FUTURE_PERIOD:
+          summary: Referência posterior ao dia, mês ou ano atual em Brasília.
+          value:
+            error:
+              code: FUTURE_PERIOD
+              message: Referência posterior ao dia, mês ou ano atual em Brasília.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        INVALID_IDS:
+          summary: Lista vazia, formato inválido ou mais de 50 ids na entrada.
+          value:
+            error:
+              code: INVALID_IDS
+              message: Lista vazia, formato inválido ou mais de 50 ids na entrada.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        INVALID_NAME:
+          summary: Nome obrigatório, com até 100 caracteres após remover espaços nas extremidades.
+          value:
+            error:
+              code: INVALID_NAME
+              message: Nome obrigatório, com até 100 caracteres após remover espaços nas extremidades.
+              fields:
+                patient.name: Nome obrigatório, com até 100 caracteres.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        INVALID_BIRTH_DATE:
+          summary: Nascimento inexistente, fora do formato ou posterior à data atual.
+          value:
+            error:
+              code: INVALID_BIRTH_DATE
+              message: Nascimento inexistente, fora do formato ou posterior à data atual.
+              fields:
+                patient.birthDate: Data de nascimento inválida ou futura.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        INVALID_INPUT_TYPE:
+          summary: Corpo ou entrada incompatível com a estrutura esperada.
+          value:
+            error:
+              code: INVALID_INPUT_TYPE
+              message: Corpo ou entrada incompatível com a estrutura esperada.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+NotFound:
+  description: Recurso não encontrado. Reserva de outra conversa também retorna 404, sem revelar sua
+    existência. ROUTE_NOT_FOUND vale para URLs ou métodos não cadastrados.
+  headers:
+    X-Request-Id:
+      $ref: ../openapi.yaml#/components/headers/RequestId
+  content:
+    application/json:
+      schema:
+        type: object
+        description: Erro desta categoria HTTP.
+        additionalProperties: false
+        required:
+          - error
+        properties:
+          error:
+            type: object
+            description: Detalhes do erro.
+            additionalProperties: false
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: string
+                enum:
+                  - CONVERSATION_NOT_FOUND
+                  - APPOINTMENT_NOT_FOUND
+                  - CLINIC_NOT_FOUND
+                  - ROUTE_NOT_FOUND
+                description: Códigos deste status; consulte os códigos aplicáveis na descrição da operação.
+              message:
+                type: string
+                description: Descrição legível em português.
+              fields:
+                type: object
+                description: Mapa opcional de campo para motivo; pode usar caminhos como patient.name.
+                additionalProperties:
+                  type: string
+        allOf:
+          - $ref: ../openapi.yaml#/components/schemas/ErrorResponse
+      examples:
+        CONVERSATION_NOT_FOUND:
+          summary: Conversa inexistente ou identificador malformado.
+          value:
+            error:
+              code: CONVERSATION_NOT_FOUND
+              message: Conversa inexistente ou identificador malformado.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        APPOINTMENT_NOT_FOUND:
+          summary: Reserva inexistente ou pertencente a outra conversa.
+          value:
+            error:
+              code: APPOINTMENT_NOT_FOUND
+              message: Reserva inexistente ou pertencente a outra conversa.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        CLINIC_NOT_FOUND:
+          summary: Clínica ausente no banco; confira a preparação do ambiente.
+          value:
+            error:
+              code: CLINIC_NOT_FOUND
+              message: Clínica ausente no banco; confira a preparação do ambiente.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        ROUTE_NOT_FOUND:
+          summary: URL ou método não cadastrado na aplicação.
+          value:
+            error:
+              code: ROUTE_NOT_FOUND
+              message: URL ou método não cadastrado na aplicação.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+Conflict:
+  description: Conflito de estado. Revisão antiga exige nova leitura; conversa encerrada/abandonada
+    exige nova conversa; actionId com outro input exige uma chave nova. Não há view neste envelope
+    comum.
+  headers:
+    X-Request-Id:
+      $ref: ../openapi.yaml#/components/headers/RequestId
+  content:
+    application/json:
+      schema:
+        type: object
+        description: Erro desta categoria HTTP.
+        additionalProperties: false
+        required:
+          - error
+        properties:
+          error:
+            type: object
+            description: Detalhes do erro.
+            additionalProperties: false
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: string
+                enum:
+                  - STALE_CONVERSATION_STATE
+                  - ACTION_ID_CONFLICT
+                  - CONVERSATION_CLOSED
+                  - CONVERSATION_ABANDONED
+                  - APPOINTMENT_NOT_CANCELLABLE
+                description: Códigos deste status; consulte os códigos aplicáveis na descrição da operação.
+              message:
+                type: string
+                description: Descrição legível em português.
+              fields:
+                type: object
+                description: Mapa opcional de campo para motivo; pode usar caminhos como patient.name.
+                additionalProperties:
+                  type: string
+        allOf:
+          - $ref: ../openapi.yaml#/components/schemas/ErrorResponse
+      examples:
+        STALE_CONVERSATION_STATE:
+          summary: Revisão antiga; consulte o estado e reexiba a view antes de uma ação nova.
+          value:
+            error:
+              code: STALE_CONVERSATION_STATE
+              message: Revisão antiga; consulte o estado e reexiba a view antes de uma ação nova.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        ACTION_ID_CONFLICT:
+          summary: A chave já foi usada com outro input; use uma chave nova para a ação nova.
+          value:
+            error:
+              code: ACTION_ID_CONFLICT
+              message: A chave já foi usada com outro input; use uma chave nova para a ação nova.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        CONVERSATION_CLOSED:
+          summary: Conversa encerrada por Sair; inicie outra conversa com contato novo.
+          value:
+            error:
+              code: CONVERSATION_CLOSED
+              message: Conversa encerrada por Sair; inicie outra conversa com contato novo.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        CONVERSATION_ABANDONED:
+          summary: Mais de uma hora sem atividade; inicie outra conversa, sem retomar esta.
+          value:
+            error:
+              code: CONVERSATION_ABANDONED
+              message: Mais de uma hora sem atividade; inicie outra conversa, sem retomar esta.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        APPOINTMENT_NOT_CANCELLABLE:
+          summary: Reserva completa ou já cancelada; não pode ser cancelada novamente.
+          value:
+            error:
+              code: APPOINTMENT_NOT_CANCELLABLE
+              message: Reserva completa ou já cancelada; não pode ser cancelada novamente.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+Unprocessable:
+  description: Entrada estruturalmente válida, mas incompatível com o passo atual. Reexiba os
+    controles retornados pela última leitura.
+  headers:
+    X-Request-Id:
+      $ref: ../openapi.yaml#/components/headers/RequestId
+  content:
+    application/json:
+      schema:
+        type: object
+        description: Erro desta categoria HTTP.
+        additionalProperties: false
+        required:
+          - error
+        properties:
+          error:
+            type: object
+            description: Detalhes do erro.
+            additionalProperties: false
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: string
+                enum:
+                  - INVALID_OPTION
+                  - INVALID_SLOT
+                  - ACTION_NOT_ALLOWED_IN_STEP
+                description: Códigos deste status; consulte os códigos aplicáveis na descrição da operação.
+              message:
+                type: string
+                description: Descrição legível em português.
+              fields:
+                type: object
+                description: Mapa opcional de campo para motivo; pode usar caminhos como patient.name.
+                additionalProperties:
+                  type: string
+        allOf:
+          - $ref: ../openapi.yaml#/components/schemas/ErrorResponse
+      examples:
+        INVALID_OPTION:
+          summary: Opção não pertence ao passo atual; use os ids da view vigente.
+          value:
+            error:
+              code: INVALID_OPTION
+              message: Opção não pertence ao passo atual; use os ids da view vigente.
+              fields:
+                optionId: Opção indisponível neste passo.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        INVALID_SLOT:
+          summary: Horário não foi oferecido na tentativa atual.
+          value:
+            error:
+              code: INVALID_SLOT
+              message: Horário não foi oferecido na tentativa atual.
+              fields:
+                slotId: Horário não oferecido nesta tentativa.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        ACTION_NOT_ALLOWED_IN_STEP:
+          summary: Tipo de ação não permitido no passo atual.
+          value:
+            error:
+              code: ACTION_NOT_ALLOWED_IN_STEP
+              message: Tipo de ação não permitido no passo atual.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+PayloadTooLarge:
+  description: Corpo acima do limite padrão do parser JSON do Express (100 KB). Reduza o conteúdo
+    antes de repetir.
+  headers:
+    X-Request-Id:
+      $ref: ../openapi.yaml#/components/headers/RequestId
+  content:
+    application/json:
+      schema:
+        type: object
+        description: Erro desta categoria HTTP.
+        additionalProperties: false
+        required:
+          - error
+        properties:
+          error:
+            type: object
+            description: Detalhes do erro.
+            additionalProperties: false
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: string
+                enum:
+                  - PAYLOAD_TOO_LARGE
+                description: Códigos deste status; consulte os códigos aplicáveis na descrição da operação.
+              message:
+                type: string
+                description: Descrição legível em português.
+              fields:
+                type: object
+                description: Mapa opcional de campo para motivo; pode usar caminhos como patient.name.
+                additionalProperties:
+                  type: string
+        allOf:
+          - $ref: ../openapi.yaml#/components/schemas/ErrorResponse
+      examples:
+        PAYLOAD_TOO_LARGE:
+          summary: Corpo acima do limite do parser JSON; reduza o conteúdo antes de repetir.
+          value:
+            error:
+              code: PAYLOAD_TOO_LARGE
+              message: Corpo acima do limite do parser JSON; reduza o conteúdo antes de repetir.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+InternalError:
+  description: Falha inesperada. Detalhes ficam no log, associados ao X-Request-Id; não são enviados
+    ao cliente. Transações são desfeitas.
+  headers:
+    X-Request-Id:
+      $ref: ../openapi.yaml#/components/headers/RequestId
+  content:
+    application/json:
+      schema:
+        type: object
+        description: Erro desta categoria HTTP.
+        additionalProperties: false
+        required:
+          - error
+        properties:
+          error:
+            type: object
+            description: Detalhes do erro.
+            additionalProperties: false
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: string
+                enum:
+                  - INTERNAL_ERROR
+                description: Códigos deste status; consulte os códigos aplicáveis na descrição da operação.
+              message:
+                type: string
+                description: Descrição legível em português.
+              fields:
+                type: object
+                description: Mapa opcional de campo para motivo; pode usar caminhos como patient.name.
+                additionalProperties:
+                  type: string
+        allOf:
+          - $ref: ../openapi.yaml#/components/schemas/ErrorResponse
+      examples:
+        INTERNAL_ERROR:
+          summary: Falha interna; detalhes somente no log associado ao X-Request-Id.
+          value:
+            error:
+              code: INTERNAL_ERROR
+              message: Falha interna; detalhes somente no log associado ao X-Request-Id.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+ServiceUnavailable:
+  description: Banco indisponível. Permita tentar novamente; ações podem ser reenviadas com a mesma
+    actionId e input.
+  headers:
+    X-Request-Id:
+      $ref: ../openapi.yaml#/components/headers/RequestId
+  content:
+    application/json:
+      schema:
+        type: object
+        description: Erro desta categoria HTTP.
+        additionalProperties: false
+        required:
+          - error
+        properties:
+          error:
+            type: object
+            description: Detalhes do erro.
+            additionalProperties: false
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: string
+                enum:
+                  - SERVICE_UNAVAILABLE
+                description: Códigos deste status; consulte os códigos aplicáveis na descrição da operação.
+              message:
+                type: string
+                description: Descrição legível em português.
+              fields:
+                type: object
+                description: Mapa opcional de campo para motivo; pode usar caminhos como patient.name.
+                additionalProperties:
+                  type: string
+        allOf:
+          - $ref: ../openapi.yaml#/components/schemas/ErrorResponse
+      examples:
+        SERVICE_UNAVAILABLE:
+          summary: Banco indisponível; permita nova tentativa com a mesma chave e input.
+          value:
+            error:
+              code: SERVICE_UNAVAILABLE
+              message: Banco indisponível; permita nova tentativa com a mesma chave e input.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+InteractionConflict:
+  description: 'Conflito de estado. Revisão antiga exige nova leitura; conversa encerrada/abandonada
+    exige nova conversa; actionId com outro input exige uma chave nova. Não há view neste envelope
+    comum. SLOT_UNAVAILABLE é a exceção: inclui o estado atualizado, avança revision e permite ao
+    cliente apresentar a nova oferta, inclusive uma busca vazia.'
+  headers:
+    X-Request-Id:
+      $ref: ../openapi.yaml#/components/headers/RequestId
+  content:
+    application/json:
+      schema:
+        oneOf:
+          - type: object
+            description: Erro desta categoria HTTP.
+            additionalProperties: false
+            required:
+              - error
+            properties:
+              error:
+                type: object
+                description: Detalhes do erro.
+                additionalProperties: false
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - STALE_CONVERSATION_STATE
+                      - ACTION_ID_CONFLICT
+                      - CONVERSATION_CLOSED
+                      - CONVERSATION_ABANDONED
+                      - APPOINTMENT_NOT_CANCELLABLE
+                    description: Códigos deste status; consulte os códigos aplicáveis na descrição da operação.
+                  message:
+                    type: string
+                    description: Descrição legível em português.
+                  fields:
+                    type: object
+                    description: Mapa opcional de campo para motivo; pode usar caminhos como patient.name.
+                    additionalProperties:
+                      type: string
+            allOf:
+              - $ref: ../openapi.yaml#/components/schemas/ErrorResponse
+          - $ref: ../openapi.yaml#/components/schemas/SlotUnavailable
+      examples:
+        STALE_CONVERSATION_STATE:
+          summary: Revisão antiga; consulte o estado e reexiba a view antes de uma ação nova.
+          value:
+            error:
+              code: STALE_CONVERSATION_STATE
+              message: Revisão antiga; consulte o estado e reexiba a view antes de uma ação nova.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        ACTION_ID_CONFLICT:
+          summary: A chave já foi usada com outro input; use uma chave nova para a ação nova.
+          value:
+            error:
+              code: ACTION_ID_CONFLICT
+              message: A chave já foi usada com outro input; use uma chave nova para a ação nova.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        CONVERSATION_CLOSED:
+          summary: Conversa encerrada por Sair; inicie outra conversa com contato novo.
+          value:
+            error:
+              code: CONVERSATION_CLOSED
+              message: Conversa encerrada por Sair; inicie outra conversa com contato novo.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        CONVERSATION_ABANDONED:
+          summary: Mais de uma hora sem atividade; inicie outra conversa, sem retomar esta.
+          value:
+            error:
+              code: CONVERSATION_ABANDONED
+              message: Mais de uma hora sem atividade; inicie outra conversa, sem retomar esta.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        APPOINTMENT_NOT_CANCELLABLE:
+          summary: Reserva completa ou já cancelada; não pode ser cancelada novamente.
+          value:
+            error:
+              code: APPOINTMENT_NOT_CANCELLABLE
+              message: Reserva completa ou já cancelada; não pode ser cancelada novamente.
+          description: Exemplo ilustrativo. Decisões do cliente usam error.code; o texto pode mudar.
+        SlotUnavailable:
+          $ref: ../openapi.yaml#/components/examples/SlotUnavailable
+        SlotUnavailableEmpty:
+          $ref: ../openapi.yaml#/components/examples/SlotUnavailableEmpty

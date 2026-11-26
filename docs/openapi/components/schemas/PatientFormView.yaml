@@ -1,0 +1,42 @@
+type: object
+description: Formulário estruturado da primeira reserva. Não é mensagem livre nem etapa adicional de
+  confirmação.
+additionalProperties: false
+required:
+  - type
+  - fields
+  - selectedSlot
+properties:
+  type:
+    type: string
+    const: patient_form
+    description: Tipo de controle.
+  fields:
+    type: array
+    description: Nome e nascimento.
+    items:
+      type: object
+      description: Campo a solicitar.
+      additionalProperties: false
+      required:
+        - name
+        - type
+        - required
+      properties:
+        name:
+          type: string
+          description: Nome técnico do campo.
+        type:
+          type: string
+          enum:
+            - text
+            - date
+          description: Tipo de entrada.
+        required:
+          type: boolean
+          const: true
+          description: Campo obrigatório.
+  selectedSlot:
+    anyOf:
+      - $ref: ../../openapi.yaml#/components/schemas/Slot
+      - type: 'null'

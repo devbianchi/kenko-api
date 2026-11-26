@@ -1,0 +1,26 @@
+type: object
+description: Mensagem nova do bot, sem representar a transcrição inteira. O cliente deduplica por
+  id; autor e instante são fatos estruturados.
+additionalProperties: false
+required:
+  - id
+  - author
+  - text
+  - sentAt
+properties:
+  id:
+    type: string
+    description:
+      'Identificador estável da interação do bot. Identificador opaco: use o valor retornado
+      pela API; não extraia a chave numérica.'
+  author:
+    type: string
+    const: bot
+    description: Autor das mensagens devolvidas.
+  text:
+    type: string
+    description: Texto do roteiro no banco com os dados variáveis preenchidos.
+  sentAt:
+    type: string
+    format: date-time
+    description: Instante original da mensagem; replay mantém esse valor.

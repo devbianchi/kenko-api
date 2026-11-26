@@ -144,6 +144,13 @@ export async function runRequestsFile(
   app: Express,
   path: string,
   clock: Clock,
+  inspect?: (response: {
+    method: string;
+    url: string;
+    status: number;
+    body: unknown;
+    headers: Record<string, string>;
+  }) => void,
 ): Promise<ExecutedRequest[]> {
   const { variables, blocks } = parseRequestsFile(path);
   const scope: Record<string, string> = { ...variables, host: '' };
@@ -163,6 +170,14 @@ export async function runRequestsFile(
     let call = request(app)[block.method.toLowerCase() as 'get' | 'post'](url);
     for (const [key, value] of Object.entries(headers)) call = call.set(key, value);
     const response = body ? await call.send(body) : await call;
+
+    inspect?.({
+      method: block.method,
+      url,
+      status: response.status,
+      body: response.body,
+      headers: response.headers,
+    });
 
     if (block.name) responses.set(block.name, response.body);
     executed.push({ title: block.title, status: response.status, body: response.body });

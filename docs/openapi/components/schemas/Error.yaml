@@ -1,0 +1,18 @@
+type: object
+description: Erro estruturado. Decisões usam code; message é texto de apresentação e pode mudar.
+  Nunca expõe SQL ou stack trace.
+additionalProperties: false
+required:
+  - code
+  - message
+properties:
+  code:
+    $ref: ../../openapi.yaml#/components/schemas/ErrorCode
+  message:
+    type: string
+    description: Descrição legível em português.
+  fields:
+    type: object
+    description: Mapa opcional de campo para motivo; pode usar caminhos como patient.name.
+    additionalProperties:
+      type: string

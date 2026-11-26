@@ -1,0 +1,27 @@
+type: object
+description: Janela efetiva resolvida pelo filtro.
+additionalProperties: false
+required:
+  - type
+  - reference
+  - start
+  - endExclusive
+properties:
+  type:
+    type: string
+    enum:
+      - week
+      - month
+      - year
+    description: Tipo de filtro.
+  reference:
+    type: string
+    description: 'Referência original: YYYY-MM-DD, YYYY-MM ou YYYY.'
+  start:
+    type: string
+    format: date-time
+    description: Primeiro instante incluído.
+  endExclusive:
+    type: string
+    format: date-time
+    description: Primeiro instante excluído.

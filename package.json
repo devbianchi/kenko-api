@@ -6,7 +6,9 @@
     "doc": "docs"
   },
   "scripts": {
+    "predev": "npm run docs:bundle",
     "dev": "tsx watch src/server.ts",
+    "prebuild": "npm run docs:bundle",
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json",
@@ -18,7 +20,11 @@
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
     "test:coverage": "vitest run --coverage",
-    "db:seed": "tsx src/database/seed.ts"
+    "db:seed": "tsx src/database/seed.ts",
+    "docs:format": "prettier --write --ignore-path .gitignore docs/openapi redocly.yaml",
+    "docs:lint": "redocly lint && prettier --check --ignore-path .gitignore docs/openapi redocly.yaml",
+    "docs:bundle": "redocly bundle kenko --output dist/openapi/openapi.yaml && redocly bundle kenko --output dist/openapi/openapi.json",
+    "docs:check": "npm run docs:lint && npm run docs:bundle && vitest run tests/unit/openapi.test.ts tests/unit/openapi-http.test.ts tests/unit/docs.test.ts"
   },
   "repository": {
     "type": "git",
@@ -38,6 +44,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@redocly/cli": "^2.84.0",
     "@testcontainers/postgresql": "^12.2.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
@@ -45,6 +52,8 @@
     "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",
     "@vitest/coverage-v8": "^5.1.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "eslint": "^10.15.0",
     "prettier": "^3.10.1",
     "supertest": "^7.3.2",
@@ -52,7 +61,8 @@
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.73.0",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.0",
+    "yaml": "^2.9.1"
   },
   "private": true,
   "license": "UNLICENSED",

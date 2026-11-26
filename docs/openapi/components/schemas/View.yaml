@@ -1,0 +1,18 @@
+description: Controle atual, determinado pelo backend. Cada variante tem campos próprios; o cliente
+  renderiza pelo type.
+oneOf:
+  - $ref: ../../openapi.yaml#/components/schemas/OptionsView
+  - $ref: ../../openapi.yaml#/components/schemas/SlotsView
+  - $ref: ../../openapi.yaml#/components/schemas/PatientFormView
+  - $ref: ../../openapi.yaml#/components/schemas/AppointmentsView
+  - $ref: ../../openapi.yaml#/components/schemas/ClinicInformationView
+  - $ref: ../../openapi.yaml#/components/schemas/ClosedView
+discriminator:
+  propertyName: type
+  mapping:
+    options: ../../openapi.yaml#/components/schemas/OptionsView
+    slots: ../../openapi.yaml#/components/schemas/SlotsView
+    patient_form: ../../openapi.yaml#/components/schemas/PatientFormView
+    appointments: ../../openapi.yaml#/components/schemas/AppointmentsView
+    clinic_information: ../../openapi.yaml#/components/schemas/ClinicInformationView
+    closed: ../../openapi.yaml#/components/schemas/ClosedView

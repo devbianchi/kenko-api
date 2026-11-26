@@ -1,0 +1,260 @@
+/api/conversations:
+  post:
+    operationId: createConversation
+    tags:
+      - Conversas
+    summary: Criar conversa ou recuperar a conversa do contato
+    description: 'Novo contato cria conversa e envia automaticamente saudação e menu (201). Repetir
+      contactId devolve a existente (200), mesmo encerrada/abandonada; para novo atendimento use
+      contato novo. Antes da primeira ação do paciente, o replay devolve a saudação original com
+      mesmo id e sentAt; depois, messages é vazio. Não renova atividade. Erros: MISSING_PARAMETER,
+      INVALID_INPUT_TYPE, INVALID_JSON, PAYLOAD_TOO_LARGE.'
+    responses:
+      '200':
+        description: Operação concluída.
+        headers:
+          X-Request-Id:
+            $ref: ../openapi.yaml#/components/headers/RequestId
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/CreatedConversation
+            examples:
+              GreetingReplay:
+                $ref: ../openapi.yaml#/components/examples/GreetingReplay
+              CreationAfterAction:
+                $ref: ../openapi.yaml#/components/examples/CreationAfterAction
+      '201':
+        description: Conversa criada com menu automático.
+        headers:
+          X-Request-Id:
+            $ref: ../openapi.yaml#/components/headers/RequestId
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/CreatedConversation
+            examples:
+              Created:
+                $ref: ../openapi.yaml#/components/examples/Created
+      '400':
+        $ref: ../openapi.yaml#/components/responses/BadRequest
+      '413':
+        $ref: ../openapi.yaml#/components/responses/PayloadTooLarge
+      '500':
+        $ref: ../openapi.yaml#/components/responses/InternalError
+      '503':
+        $ref: ../openapi.yaml#/components/responses/ServiceUnavailable
+    requestBody:
+      required: true
+      description: Identificador de contato novo, ou o mesmo contato para repetir a criação com segurança.
+      content:
+        application/json:
+          schema:
+            $ref: ../openapi.yaml#/components/schemas/CreateConversation
+          examples:
+            NewContact:
+              $ref: ../openapi.yaml#/components/examples/NewContact
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/RequestId
+  get:
+    operationId: listConversations
+    tags:
+      - Conversas
+    summary: Consultar estados de conversas conhecidas
+    description:
+      'Não lista todas as conversas do banco. Recebe os ids conhecidos pelo navegador, omite
+      inexistentes, deduplica e mantém a ordem solicitada. Lista vazia de encontrados é 200. Não
+      renova atividade nem gera mensagens. Erros: MISSING_PARAMETER, INVALID_IDS.'
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/Ids
+      - $ref: ../openapi.yaml#/components/parameters/RequestId
+    responses:
+      '200':
+        description: Operação concluída.
+        headers:
+          X-Request-Id:
+            $ref: ../openapi.yaml#/components/headers/RequestId
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/ConversationListResponse
+            examples:
+              ConversationList:
+                $ref: ../openapi.yaml#/components/examples/ConversationList
+      '400':
+        $ref: ../openapi.yaml#/components/responses/BadRequest
+      '413':
+        $ref: ../openapi.yaml#/components/responses/PayloadTooLarge
+      '500':
+        $ref: ../openapi.yaml#/components/responses/InternalError
+      '503':
+        $ref: ../openapi.yaml#/components/responses/ServiceUnavailable
+/api/conversations/{id}:
+  get:
+    operationId: getConversation
+    tags:
+      - Conversas
+    summary: Consultar estado atual sem registrar atividade
+    description:
+      'Retorna conversa, view e ações globais, sem transcrição nem novas mensagens. GET não
+      avança passos, não executa nova busca funcional e não renova a última interação. Abandono é
+      derivado após inatividade estritamente maior que uma hora. Erro: CONVERSATION_NOT_FOUND.'
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/ConversationId
+      - $ref: ../openapi.yaml#/components/parameters/RequestId
+    responses:
+      '200':
+        description: Operação concluída.
+        headers:
+          X-Request-Id:
+            $ref: ../openapi.yaml#/components/headers/RequestId
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/ConversationDetail
+            examples:
+              Detail:
+                $ref: ../openapi.yaml#/components/examples/Detail
+              AbandonedDetail:
+                $ref: ../openapi.yaml#/components/examples/AbandonedDetail
+      '400':
+        $ref: ../openapi.yaml#/components/responses/BadRequest
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '413':
+        $ref: ../openapi.yaml#/components/responses/PayloadTooLarge
+      '500':
+        $ref: ../openapi.yaml#/components/responses/InternalError
+      '503':
+        $ref: ../openapi.yaml#/components/responses/ServiceUnavailable
+/api/conversations/{id}/appointments:
+  get:
+    operationId: listConversationAppointments
+    tags:
+      - Conversas
+    summary: Consultar reservas da própria conversa
+    description:
+      'Lista reservas pendentes, completas e canceladas vinculadas à conversa. Nunca consulta
+      outras conversas por nome do paciente. canCancel é verdadeiro apenas para pendente em conversa
+      ativa e é revalidado ao cancelar. Não renova atividade; sem reservas retorna 200 com lista
+      vazia. Erro: CONVERSATION_NOT_FOUND.'
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/ConversationId
+      - $ref: ../openapi.yaml#/components/parameters/RequestId
+    responses:
+      '200':
+        description: Operação concluída.
+        headers:
+          X-Request-Id:
+            $ref: ../openapi.yaml#/components/headers/RequestId
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/AppointmentsResponse
+            examples:
+              Appointments:
+                $ref: ../openapi.yaml#/components/examples/Appointments
+              EmptyAppointments:
+                $ref: ../openapi.yaml#/components/examples/EmptyAppointments
+      '400':
+        $ref: ../openapi.yaml#/components/responses/BadRequest
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '413':
+        $ref: ../openapi.yaml#/components/responses/PayloadTooLarge
+      '500':
+        $ref: ../openapi.yaml#/components/responses/InternalError
+      '503':
+        $ref: ../openapi.yaml#/components/responses/ServiceUnavailable
+/api/conversations/{id}/interactions:
+  post:
+    operationId: processInteraction
+    tags:
+      - Bot
+    summary: Processar uma ação do paciente
+    description:
+      'O backend valida a entrada e conduz a transição. Ordem atual: formato, existência da
+      conversa, replay por actionId/input, estado encerrado/abandonado, expectedRevision e regra do
+      passo. Mesmo actionId e input retorna exatamente o resultado salvo, antes de verificar
+      revisão; conteúdo diferente gera ACTION_ID_CONFLICT. A revisão avança em ações aceitas,
+      inclusive Sair e SLOT_UNAVAILABLE; erros comuns não avançam. Ações simultâneas da mesma
+      conversa são serializadas. Primeira reserva: especialidade → visita → horário →
+      nome/nascimento; o envio do paciente confirma sem tela extra. Próximas reservas: selecionar
+      horário confirma com o mesmo paciente. Confirmação/cancelamento são transacionais. GETs e
+      reenvios não renovam atividade. Erros 400: MISSING_PARAMETER, INVALID_INPUT_TYPE,
+      INVALID_JSON, INVALID_NAME, INVALID_BIRTH_DATE. Erros 404: CONVERSATION_NOT_FOUND,
+      APPOINTMENT_NOT_FOUND. Erros 409: STALE_CONVERSATION_STATE, ACTION_ID_CONFLICT,
+      CONVERSATION_CLOSED, CONVERSATION_ABANDONED, APPOINTMENT_NOT_CANCELLABLE e SLOT_UNAVAILABLE.
+      Erros 422: INVALID_OPTION, INVALID_SLOT, ACTION_NOT_ALLOWED_IN_STEP. SLOT_UNAVAILABLE traz
+      nova view e também pode trazer aviso de busca vazia.'
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/ConversationId
+      - $ref: ../openapi.yaml#/components/parameters/RequestId
+    responses:
+      '200':
+        description: Operação concluída.
+        headers:
+          X-Request-Id:
+            $ref: ../openapi.yaml#/components/headers/RequestId
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/InteractionResponse
+            examples:
+              Specialty:
+                $ref: ../openapi.yaml#/components/examples/Specialty
+              VisitKind:
+                $ref: ../openapi.yaml#/components/examples/VisitKind
+              Slots:
+                $ref: ../openapi.yaml#/components/examples/Slots
+              NoSlots:
+                $ref: ../openapi.yaml#/components/examples/NoSlots
+              PatientForm:
+                $ref: ../openapi.yaml#/components/examples/PatientForm
+              Confirmed:
+                $ref: ../openapi.yaml#/components/examples/Confirmed
+              ConfirmedAgain:
+                $ref: ../openapi.yaml#/components/examples/ConfirmedAgain
+              ClinicInformation:
+                $ref: ../openapi.yaml#/components/examples/ClinicInformation
+              AppointmentView:
+                $ref: ../openapi.yaml#/components/examples/AppointmentView
+              Cancelled:
+                $ref: ../openapi.yaml#/components/examples/Cancelled
+              Exited:
+                $ref: ../openapi.yaml#/components/examples/Exited
+      '400':
+        $ref: ../openapi.yaml#/components/responses/BadRequest
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '409':
+        $ref: ../openapi.yaml#/components/responses/InteractionConflict
+      '413':
+        $ref: ../openapi.yaml#/components/responses/PayloadTooLarge
+      '422':
+        $ref: ../openapi.yaml#/components/responses/Unprocessable
+      '500':
+        $ref: ../openapi.yaml#/components/responses/InternalError
+      '503':
+        $ref: ../openapi.yaml#/components/responses/ServiceUnavailable
+    requestBody:
+      required: true
+      description:
+        Preserve actionId e input ao repetir uma ação após falha de rede. expectedRevision usa
+        a revisão que originou aquela ação. Campos desconhecidos são ignorados; nomes inválidos e
+        nascimento inválido/futuro são validações de domínio com status 400.
+      content:
+        application/json:
+          schema:
+            $ref: ../openapi.yaml#/components/schemas/InteractionRequest
+          examples:
+            InputSelectOption:
+              $ref: ../openapi.yaml#/components/examples/InputSelectOption
+            InputSelectSlot:
+              $ref: ../openapi.yaml#/components/examples/InputSelectSlot
+            InputSubmitPatient:
+              $ref: ../openapi.yaml#/components/examples/InputSubmitPatient
+            InputCancelAppointment:
+              $ref: ../openapi.yaml#/components/examples/InputCancelAppointment
+            InputExit:
+              $ref: ../openapi.yaml#/components/examples/InputExit

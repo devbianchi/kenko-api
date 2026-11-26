@@ -1,0 +1,37 @@
+type: object
+description: Consulta pendente com início estritamente futuro; a lista da Home não depende do filtro mensal.
+additionalProperties: false
+required:
+  - id
+  - status
+  - startsAt
+  - endsAt
+  - patient
+  - specialty
+  - doctor
+  - room
+properties:
+  id:
+    type: string
+    description: 'Identificador da reserva. Identificador opaco: use o valor retornado pela API; não
+      extraia a chave numérica.'
+  status:
+    type: string
+    const: pending
+    description: Próximas consultas são sempre pendentes.
+  startsAt:
+    type: string
+    format: date-time
+    description: Início do horário marcado.
+  endsAt:
+    type: string
+    format: date-time
+    description: Fim do horário marcado.
+  patient:
+    $ref: ../../openapi.yaml#/components/schemas/NamedResource
+  specialty:
+    $ref: ../../openapi.yaml#/components/schemas/NamedResource
+  doctor:
+    $ref: ../../openapi.yaml#/components/schemas/NamedResource
+  room:
+    $ref: ../../openapi.yaml#/components/schemas/NamedResource

@@ -1,0 +1,17 @@
+type: object
+description: Resultado de cancelamento persistido; não elimina o registro nem a primeira confirmação
+  usada em métricas.
+additionalProperties: false
+required:
+  - type
+  - appointmentId
+properties:
+  type:
+    type: string
+    const: appointment_cancelled
+    description: Tipo de resultado.
+  appointmentId:
+    type: string
+    description:
+      'Reserva cancelada. Identificador opaco: use o valor retornado pela API; não extraia a
+      chave numérica.'

@@ -1,0 +1,15 @@
+type: object
+description: Cancela preservando o histórico e libera o horário se ainda for futuro.
+required:
+  - type
+  - appointmentId
+properties:
+  type:
+    type: string
+    const: cancel_appointment
+    description: Discriminador da entrada.
+  appointmentId:
+    type: string
+    minLength: 1
+    maxLength: 64
+    description: Reserva pendente da conversa atual; outra conversa recebe 404.

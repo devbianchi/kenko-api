@@ -1,0 +1,95 @@
+type: string
+enum:
+  - INVALID_JSON
+  - MISSING_PARAMETER
+  - INVALID_DATE
+  - INVALID_MONTH
+  - INVALID_DATE_RANGE
+  - INVALID_PERIOD
+  - FUTURE_PERIOD
+  - INVALID_IDS
+  - INVALID_NAME
+  - INVALID_BIRTH_DATE
+  - INVALID_INPUT_TYPE
+  - ROUTE_NOT_FOUND
+  - CONVERSATION_NOT_FOUND
+  - APPOINTMENT_NOT_FOUND
+  - CLINIC_NOT_FOUND
+  - STALE_CONVERSATION_STATE
+  - ACTION_ID_CONFLICT
+  - CONVERSATION_CLOSED
+  - CONVERSATION_ABANDONED
+  - SLOT_UNAVAILABLE
+  - APPOINTMENT_NOT_CANCELLABLE
+  - INVALID_OPTION
+  - INVALID_SLOT
+  - ACTION_NOT_ALLOWED_IN_STEP
+  - PAYLOAD_TOO_LARGE
+  - INTERNAL_ERROR
+  - SERVICE_UNAVAILABLE
+description: >-
+  Código estável para decisão do cliente. ROUTE_NOT_FOUND vale para URLs/métodos inexistentes, sem
+  representar uma operação extra.
+
+
+  | Código | Significado e orientação |
+
+  |---|---|
+
+  | INVALID_JSON | O corpo não é JSON válido. |
+
+  | MISSING_PARAMETER | Campo ou parâmetro obrigatório ausente. |
+
+  | INVALID_DATE | Data inexistente ou fora de YYYY-MM-DD. |
+
+  | INVALID_MONTH | Mês inexistente ou fora de YYYY-MM. |
+
+  | INVALID_DATE_RANGE | O fim exclusivo deve ser posterior ao início. |
+
+  | INVALID_PERIOD | Período desconhecido ou referência incompatível com o filtro. |
+
+  | FUTURE_PERIOD | Referência posterior ao dia, mês ou ano atual em Brasília. |
+
+  | INVALID_IDS | Lista vazia, formato inválido ou mais de 50 ids na entrada. |
+
+  | INVALID_NAME | Nome obrigatório, com até 100 caracteres após remover espaços nas extremidades. |
+
+  | INVALID_BIRTH_DATE | Nascimento inexistente, fora do formato ou posterior à data atual. |
+
+  | INVALID_INPUT_TYPE | Corpo ou entrada incompatível com a estrutura esperada. |
+
+  | ROUTE_NOT_FOUND | URL ou método não cadastrado na aplicação. |
+
+  | CONVERSATION_NOT_FOUND | Conversa inexistente ou identificador malformado. |
+
+  | APPOINTMENT_NOT_FOUND | Reserva inexistente ou pertencente a outra conversa. |
+
+  | CLINIC_NOT_FOUND | Clínica ausente no banco; confira a preparação do ambiente. |
+
+  | STALE_CONVERSATION_STATE | Revisão antiga; consulte o estado e reexiba a view antes de uma ação
+  nova. |
+
+  | ACTION_ID_CONFLICT | A chave já foi usada com outro input; use uma chave nova para a ação nova.
+  |
+
+  | CONVERSATION_CLOSED | Conversa encerrada por Sair; inicie outra conversa com contato novo. |
+
+  | CONVERSATION_ABANDONED | Mais de uma hora sem atividade; inicie outra conversa, sem retomar
+  esta. |
+
+  | SLOT_UNAVAILABLE | Horário ocupado; use a nova view e revisão recebidas no próprio conflito. |
+
+  | APPOINTMENT_NOT_CANCELLABLE | Reserva completa ou já cancelada; não pode ser cancelada
+  novamente. |
+
+  | INVALID_OPTION | Opção não pertence ao passo atual; use os ids da view vigente. |
+
+  | INVALID_SLOT | Horário não foi oferecido na tentativa atual. |
+
+  | ACTION_NOT_ALLOWED_IN_STEP | Tipo de ação não permitido no passo atual. |
+
+  | PAYLOAD_TOO_LARGE | Corpo acima do limite do parser JSON; reduza o conteúdo antes de repetir. |
+
+  | INTERNAL_ERROR | Falha interna; detalhes somente no log associado ao X-Request-Id. |
+
+  | SERVICE_UNAVAILABLE | Banco indisponível; permita nova tentativa com a mesma chave e input. |

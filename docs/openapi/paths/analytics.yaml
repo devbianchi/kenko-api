@@ -1,0 +1,39 @@
+/api/analytics:
+  get:
+    operationId: getAnalytics
+    tags:
+      - Analytics
+    summary: Consultar indicadores e séries de atendimento
+    description: 'Retorna cinco KPIs, funil, términos, duração, heatmap, série e buscas sem horário.
+      Conversas entram pela data de início e mantêm os resultados posteriores conhecidos na mesma
+      coorte. Buscas usam seu instante; ocupação usa data dos horários. Janela anterior tem igual
+      duração, não necessariamente o mês civil anterior. Semana são sete dias terminando em
+      reference; mês é civil completo; ano corrente vai de janeiro ao mês atual. Não retorna dados
+      pessoais nem transcrições. Erros: MISSING_PARAMETER, INVALID_PERIOD, FUTURE_PERIOD.'
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/Period
+      - $ref: ../openapi.yaml#/components/parameters/Reference
+      - $ref: ../openapi.yaml#/components/parameters/RequestId
+    responses:
+      '200':
+        description: Operação concluída.
+        headers:
+          X-Request-Id:
+            $ref: ../openapi.yaml#/components/headers/RequestId
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/AnalyticsResponse
+            examples:
+              AnalyticsPopulated:
+                $ref: ../openapi.yaml#/components/examples/AnalyticsPopulated
+              Analytics:
+                $ref: ../openapi.yaml#/components/examples/Analytics
+      '400':
+        $ref: ../openapi.yaml#/components/responses/BadRequest
+      '413':
+        $ref: ../openapi.yaml#/components/responses/PayloadTooLarge
+      '500':
+        $ref: ../openapi.yaml#/components/responses/InternalError
+      '503':
+        $ref: ../openapi.yaml#/components/responses/ServiceUnavailable

@@ -1,0 +1,7 @@
+summary: Escolhe menu, especialidade, primeira consulta/retorno ou continuar.
+value:
+  actionId: act_select_option
+  expectedRevision: 0
+  input:
+    type: select_option
+    optionId: opt_schedule

@@ -1,0 +1,24 @@
+type: object
+description: Identifica o paciente e confirma a primeira reserva na mesma transação.
+required:
+  - type
+  - patient
+properties:
+  type:
+    type: string
+    const: submit_patient
+    description: Discriminador da entrada.
+  patient:
+    type: object
+    description: Paciente exclusivo da conversa; não há reaproveitamento entre conversas por nome e nascimento.
+    required:
+      - name
+      - birthDate
+    properties:
+      name:
+        type: string
+        description: 'Nome: após trim, entre 1 e 100 caracteres. Validação de domínio retorna 400 INVALID_NAME.'
+      birthDate:
+        type: string
+        description: Nascimento YYYY-MM-DD, data real e não futura. Validação de domínio retorna 400
+          INVALID_BIRTH_DATE.

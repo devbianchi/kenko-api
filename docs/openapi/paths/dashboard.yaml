@@ -1,0 +1,38 @@
+/api/dashboard:
+  get:
+    operationId: getDashboard
+    tags:
+      - Home
+    summary: Consultar resumo mensal e próximas consultas
+    description: 'month filtra as consultas pela data marcada e a duração pela coorte de início das
+      conversas. Próximas consultas usam o relógio atual, independentemente do mês. Rankings incluem
+      canceladas; duração é mediana até a primeira confirmação. Empates: dia/hora mais cedo e menor
+      id de sala. Erros: MISSING_PARAMETER, INVALID_MONTH, CLINIC_NOT_FOUND.'
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/Month
+      - $ref: ../openapi.yaml#/components/parameters/RequestId
+    responses:
+      '200':
+        description: Operação concluída.
+        headers:
+          X-Request-Id:
+            $ref: ../openapi.yaml#/components/headers/RequestId
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/DashboardResponse
+            examples:
+              DashboardPopulated:
+                $ref: ../openapi.yaml#/components/examples/DashboardPopulated
+              Dashboard:
+                $ref: ../openapi.yaml#/components/examples/Dashboard
+      '400':
+        $ref: ../openapi.yaml#/components/responses/BadRequest
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '413':
+        $ref: ../openapi.yaml#/components/responses/PayloadTooLarge
+      '500':
+        $ref: ../openapi.yaml#/components/responses/InternalError
+      '503':
+        $ref: ../openapi.yaml#/components/responses/ServiceUnavailable

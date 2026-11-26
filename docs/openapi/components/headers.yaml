@@ -1,0 +1,8 @@
+RequestId:
+  description: Identificador para correlação. Todas as respostas devolvem X-Request-Id. Um valor
+    recebido seguro de até 64 caracteres é preservado; caso contrário, um novo é gerado. O navegador
+    pode ler este cabeçalho via CORS.
+  schema:
+    type: string
+    pattern: ^[A-Za-z0-9._-]{1,64}$
+  example: d7cc9e30-2212-4cf1-8313-912b40c5c706

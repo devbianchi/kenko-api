@@ -1,0 +1,51 @@
+summary: Informações da clínica preservam step=menu
+value:
+  conversation:
+    id: cv_1
+    effectiveStatus: active
+    revision: 1
+    step: menu
+    attemptId: null
+  messages:
+    - id: msg_2
+      author: bot
+      text: Olá! Como posso ajudar?
+      sentAt: 2026-11-10T12:00:00-03:00
+  view:
+    type: clinic_information
+    clinic:
+      id: clinic_1
+      name: Clínica Demonstração
+      address: Rua de Exemplo, 100
+      phone: '1100000000'
+      openingHours:
+        - weekdays:
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+          opensAt: 07:00
+          closesAt: 18:00
+        - weekdays:
+            - 6
+          opensAt: 09:00
+          closesAt: 13:00
+        - weekdays:
+            - 0
+          closed: true
+      specialties:
+        - id: sp_1
+          name: Clínico geral
+        - id: sp_2
+          name: Dermatologia
+    options:
+      - id: opt_schedule
+        label: Agendar uma consulta
+      - id: opt_clinic_info
+        label: Ver informações da clínica
+      - id: opt_appointments
+        label: Ver ou cancelar um agendamento
+  availableActions:
+    - exit
+  result: null

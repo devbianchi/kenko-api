@@ -1,0 +1,32 @@
+summary: 409 com revisão avançada e novas opções
+value:
+  error:
+    code: SLOT_UNAVAILABLE
+    message: Este horário não está mais disponível.
+  conversation:
+    id: cv_1
+    effectiveStatus: active
+    revision: 5
+    step: slot_selection
+    attemptId: attempt_1
+  messages:
+    - id: msg_6
+      author: bot
+      text: Olá! Como posso ajudar?
+      sentAt: 2026-11-10T12:00:00-03:00
+  view:
+    type: slots
+    searchResult: available
+    slots:
+      - id: slot_2
+        startsAt: 2026-11-11T09:00:00-03:00
+        endsAt: 2026-11-11T09:30:00-03:00
+        doctor:
+          id: dr_1
+          name: Dra. Helena
+        room:
+          id: room_1
+          name: Sala 1
+  availableActions:
+    - exit
+  result: null

@@ -102,10 +102,16 @@ A API sobe em `http://localhost:8080`. Para confirmar:
 
 ```bash
 curl http://localhost:8080/health
+curl http://localhost:8080/api/docs # Especificação OpenAPI completa em JSON, sem acessar o banco
 curl http://localhost:8080/api/clinic   # 200 com a demonstração carregada; 404 CLINIC_NOT_FOUND sem ela
 ```
 
 O guia completo está em [Desenvolvimento local](docs/desenvolvimento-local/README.md).
+
+`npm run dev` e `npm run build` geram automaticamente os bundles OpenAPI antes da execução.
+O servidor carrega `dist/openapi/openapi.json` antes de abrir a porta e o disponibiliza em
+`GET /api/docs`, sem envelope `meta/data`. A entrega de produção deve incluir `dist/openapi/`;
+`npm start` apenas executa o artefato pronto, sem ferramentas de documentação no runtime.
 
 ## Comandos
 
@@ -124,6 +130,8 @@ O guia completo está em [Desenvolvimento local](docs/desenvolvimento-local/READ
 | Só unitários | `npm run test:unit` |
 | Só integração (exige Docker) | `npm run test:integration` |
 | Cobertura | `npm run test:coverage` |
+| Validar OpenAPI, exemplos e gerar bundles | `npm run docs:check` |
+| Gerar OpenAPI única em YAML e JSON | `npm run docs:bundle` |
 
 ## Documentação
 
@@ -134,6 +142,7 @@ O guia completo está em [Desenvolvimento local](docs/desenvolvimento-local/READ
 | [Banco local](docs/desenvolvimento-local/banco-local.md) | PostgreSQL em container, reset e verificação das migrations |
 | [Modelo de dados](docs/modelo-de-dados/README.md) | Tabelas, constraints, índices e sequência de migrations |
 | [Endpoints](docs/endpoint/README.md) | Contratos REST, formatos JSON, erros e interações do bot |
+| [OpenAPI](docs/openapi/README.md) | Especificação completa, exemplos, validação e bundles para documentação Swagger separada |
 | [Catálogo de erros](docs/catalogo-de-erros/README.md) | Códigos de erro, status HTTP e o que o cliente deve fazer |
 | [Estratégia de testes](docs/estrategia-de-testes/README.md) | Níveis de teste, convenções e critérios de pronto |
 | [Dados de teste](docs/estrategia-de-testes/dados-de-teste.md) | Relógio fixo, base com PostgreSQL e cenários reutilizáveis |

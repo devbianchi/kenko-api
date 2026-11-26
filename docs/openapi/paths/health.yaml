@@ -1,0 +1,30 @@
+/health:
+  get:
+    operationId: getHealth
+    tags:
+      - Saúde
+    summary: Verificar disponibilidade do processo HTTP
+    description:
+      Retorna ok sem acessar o banco. Não é uma verificação de prontidão do PostgreSQL. Não
+      usa envelope meta/data.
+    responses:
+      '200':
+        description: Operação concluída.
+        headers:
+          X-Request-Id:
+            $ref: ../openapi.yaml#/components/headers/RequestId
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/Health
+            examples:
+              Health:
+                $ref: ../openapi.yaml#/components/examples/Health
+      '400':
+        $ref: ../openapi.yaml#/components/responses/BadRequest
+      '413':
+        $ref: ../openapi.yaml#/components/responses/PayloadTooLarge
+      '500':
+        $ref: ../openapi.yaml#/components/responses/InternalError
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/RequestId

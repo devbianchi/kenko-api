@@ -1,0 +1,16 @@
+type: object
+description: 'Janela imediatamente anterior de mesma duração: dias para semana/mês e meses para ano.
+  Não é necessariamente o mês civil anterior.'
+additionalProperties: false
+required:
+  - start
+  - endExclusive
+properties:
+  start:
+    type: string
+    format: date-time
+    description: Primeiro instante incluído.
+  endExclusive:
+    type: string
+    format: date-time
+    description: Primeiro instante excluído; coincide com início da janela atual.

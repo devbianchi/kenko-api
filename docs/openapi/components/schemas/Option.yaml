@@ -1,0 +1,14 @@
+type: object
+description: Opção do roteiro retornada para o passo atual. Envie seu id, não o texto do label.
+additionalProperties: false
+required:
+  - id
+  - label
+properties:
+  id:
+    type: string
+    description: 'Identificador da opção, como opt_schedule ou uma especialidade sp_2. Identificador
+      opaco: use o valor retornado pela API; não extraia a chave numérica.'
+  label:
+    type: string
+    description: Texto da opção lido do roteiro no banco.

@@ -1,0 +1,69 @@
+/api/calendar:
+  get:
+    operationId: getCalendar
+    tags:
+      - Calendário
+    summary: Consultar contagens por data no intervalo visível
+    description: 'O frontend envia a faixa completa da grade, incluindo dias de meses vizinhos.
+      Intervalo [startDate, endDateExclusive), no fuso de Brasília. Datas ausentes no mapa equivalem
+      a zero; canceladas contam. Não há parâmetro de layout. Erros: MISSING_PARAMETER, INVALID_DATE,
+      INVALID_DATE_RANGE.'
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/StartDate
+      - $ref: ../openapi.yaml#/components/parameters/EndDate
+      - $ref: ../openapi.yaml#/components/parameters/RequestId
+    responses:
+      '200':
+        description: Operação concluída.
+        headers:
+          X-Request-Id:
+            $ref: ../openapi.yaml#/components/headers/RequestId
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/CalendarResponse
+            examples:
+              Calendar:
+                $ref: ../openapi.yaml#/components/examples/Calendar
+      '400':
+        $ref: ../openapi.yaml#/components/responses/BadRequest
+      '413':
+        $ref: ../openapi.yaml#/components/responses/PayloadTooLarge
+      '500':
+        $ref: ../openapi.yaml#/components/responses/InternalError
+      '503':
+        $ref: ../openapi.yaml#/components/responses/ServiceUnavailable
+/api/calendar/days/{date}:
+  get:
+    operationId: getCalendarDay
+    tags:
+      - Calendário
+    summary: Detalhar consultas e ocupação de uma data
+    description: 'Totais por status, vetores das 24 horas, manhã/tarde e todas as salas cadastradas.
+      Contagens incluem canceladas; ocupação conta horários com reserva não cancelada e não usa
+      minutos. Sem consultas, responde 200 com zeros e percentuais null quando não houver base.
+      Erro: INVALID_DATE.'
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/Date
+      - $ref: ../openapi.yaml#/components/parameters/RequestId
+    responses:
+      '200':
+        description: Operação concluída.
+        headers:
+          X-Request-Id:
+            $ref: ../openapi.yaml#/components/headers/RequestId
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/DayResponse
+            examples:
+              Day:
+                $ref: ../openapi.yaml#/components/examples/Day
+      '400':
+        $ref: ../openapi.yaml#/components/responses/BadRequest
+      '413':
+        $ref: ../openapi.yaml#/components/responses/PayloadTooLarge
+      '500':
+        $ref: ../openapi.yaml#/components/responses/InternalError
+      '503':
+        $ref: ../openapi.yaml#/components/responses/ServiceUnavailable

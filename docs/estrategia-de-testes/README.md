@@ -39,6 +39,8 @@ Ponto de atenção: testes de HTTP que dependem do banco entram na integração.
 | supertest | Testes de contrato HTTP sobre a aplicação montada por `buildApp`, sem subir servidor. |
 | `@testcontainers/postgresql` | Banco real descartável por execução. Ver `tests/support/postgres.ts`. |
 | `migrate()` | Aplicação das migrations nos testes, igual ao ambiente real. |
+| Redocly CLI | Validação da OpenAPI, referências, exemplos e geração de bundles. Executado por `npm run docs:check`. |
+| Ajv 2020, `ajv-formats` e `yaml` | Leitura da especificação e validação de exemplos e respostas HTTP reais contra os schemas, sem alterar a validação de produção. |
 
 Não usar banco em memória, MSW, ferramentas de E2E nem bibliotecas de property-based testing nesta etapa. A introdução de outra ferramenta exige atualizar este documento e o ADR correspondente.
 

@@ -1,0 +1,8 @@
+type: object
+description: Envelope comum dos erros; SLOT_UNAVAILABLE possui envelope ampliado próprio.
+additionalProperties: false
+required:
+  - error
+properties:
+  error:
+    $ref: ../../openapi.yaml#/components/schemas/Error

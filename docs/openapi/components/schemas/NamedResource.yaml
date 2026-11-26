@@ -1,0 +1,14 @@
+type: object
+description: Identificação resumida de paciente, médico, sala, especialidade ou clínica.
+additionalProperties: false
+required:
+  - id
+  - name
+properties:
+  id:
+    type: string
+    description: 'Identificador do recurso. Identificador opaco: use o valor retornado pela API; não
+      extraia a chave numérica.'
+  name:
+    type: string
+    description: Nome de exibição cadastrado no banco.

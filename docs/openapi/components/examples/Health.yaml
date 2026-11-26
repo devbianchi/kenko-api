@@ -1,0 +1,3 @@
+summary: Processo HTTP disponível, sem consultar banco
+value:
+  status: ok

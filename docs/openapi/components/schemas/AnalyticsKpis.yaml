@@ -1,0 +1,206 @@
+type: object
+description: Cinco indicadores com comparação ao período anterior. Percentuais não são arredondados;
+  divisão sem base produz null.
+additionalProperties: false
+required:
+  - botCompletion
+  - attendanceDuration
+  - outsideBusinessHours
+  - agendaOccupancy
+  - searchesWithoutSlots
+properties:
+  botCompletion:
+    type: object
+    description:
+      100 × conversas com confirmação / conversas que escolheram Agendar. Uma conversa conta
+      uma vez, mesmo com várias reservas.
+    additionalProperties: false
+    required:
+      - percentage
+      - confirmedConversations
+      - schedulingConversations
+      - previousValue
+      - difference
+      - differenceUnit
+    properties:
+      percentage:
+        anyOf:
+          - type: number
+            minimum: 0
+            maximum: 100
+            description: Taxa de conclusão do bot.
+          - type: 'null'
+      confirmedConversations:
+        type: integer
+        minimum: 0
+        description: Conversas da coorte com ao menos uma confirmação conhecida.
+      schedulingConversations:
+        type: integer
+        minimum: 0
+        description: Conversas da coorte que escolheram Agendar.
+      previousValue:
+        anyOf:
+          - type: number
+            description: Valor do período anterior; null quando não houver base.
+          - type: 'null'
+      difference:
+        anyOf:
+          - type: number
+            description: Valor atual menos anterior; null se qualquer valor não puder ser calculado.
+          - type: 'null'
+      differenceUnit:
+        type: string
+        const: percentage_points
+        description: Unidade da diferença; pontos percentuais não são variação percentual relativa.
+  attendanceDuration:
+    type: object
+    description:
+      Tempo do início até a primeira confirmação, por conversa; confirmações posteriores não
+      criam outra amostra.
+    additionalProperties: false
+    required:
+      - statistic
+      - seconds
+      - sampleSize
+      - previousValue
+      - difference
+      - differenceUnit
+    properties:
+      statistic:
+        type: string
+        const: median
+        description: Mediana, não média.
+      seconds:
+        anyOf:
+          - type: number
+            minimum: 0
+            description: Mediana em segundos; pode ser fracionária para quantidade par de amostras.
+          - type: 'null'
+      sampleSize:
+        type: integer
+        minimum: 0
+        description: Conversas com primeira confirmação.
+      previousValue:
+        anyOf:
+          - type: number
+            description: Valor do período anterior; null quando não houver base.
+          - type: 'null'
+      difference:
+        anyOf:
+          - type: number
+            description: Valor atual menos anterior; null se qualquer valor não puder ser calculado.
+          - type: 'null'
+      differenceUnit:
+        type: string
+        const: seconds
+        description: Unidade da diferença; pontos percentuais não são variação percentual relativa.
+  outsideBusinessHours:
+    type: object
+    description: Conversas iniciadas fora do expediente / todas as iniciadas. Abertura incluída,
+      fechamento excluído.
+    additionalProperties: false
+    required:
+      - percentage
+      - outsideConversations
+      - startedConversations
+      - previousValue
+      - difference
+      - differenceUnit
+    properties:
+      percentage:
+        anyOf:
+          - type: number
+            minimum: 0
+            maximum: 100
+            description: Percentual fora do expediente.
+          - type: 'null'
+      outsideConversations:
+        type: integer
+        minimum: 0
+        description: Conversas iniciadas fora do expediente.
+      startedConversations:
+        type: integer
+        minimum: 0
+        description: Todas as conversas iniciadas na janela.
+      previousValue:
+        anyOf:
+          - type: number
+            description: Valor do período anterior; null quando não houver base.
+          - type: 'null'
+      difference:
+        anyOf:
+          - type: number
+            description: Valor atual menos anterior; null se qualquer valor não puder ser calculado.
+          - type: 'null'
+      differenceUnit:
+        type: string
+        const: percentage_points
+        description: Unidade da diferença; pontos percentuais não são variação percentual relativa.
+  agendaOccupancy:
+    type: object
+    description: Horários ocupados / capacidade cadastrada, pela data marcada, inclusive horários futuros.
+    additionalProperties: false
+    required:
+      - percentage
+      - occupiedSlots
+      - totalSlots
+      - previousValue
+      - difference
+      - differenceUnit
+    properties:
+      percentage:
+        anyOf:
+          - type: number
+            minimum: 0
+            maximum: 100
+            description: Ocupação por quantidade de horários.
+          - type: 'null'
+      occupiedSlots:
+        type: integer
+        minimum: 0
+        description: Horários com reserva não cancelada.
+      totalSlots:
+        type: integer
+        minimum: 0
+        description: Todos os horários da janela.
+      previousValue:
+        anyOf:
+          - type: number
+            description: Valor do período anterior; null quando não houver base.
+          - type: 'null'
+      difference:
+        anyOf:
+          - type: number
+            description: Valor atual menos anterior; null se qualquer valor não puder ser calculado.
+          - type: 'null'
+      differenceUnit:
+        type: string
+        const: percentage_points
+        description: Unidade da diferença; pontos percentuais não são variação percentual relativa.
+  searchesWithoutSlots:
+    type: object
+    description:
+      Ocorrências efetivas de busca sem horário, pelo instante da busca. Reenvio idempotente
+      não acrescenta ocorrência.
+    additionalProperties: false
+    required:
+      - count
+      - previousValue
+      - difference
+      - differenceUnit
+    properties:
+      count:
+        type: integer
+        minimum: 0
+        description: Buscas sem horário.
+      previousValue:
+        type: integer
+        minimum: 0
+        description: Ocorrências na janela anterior.
+      difference:
+        type: integer
+        description: Atual menos anterior; pode ser negativo.
+      differenceUnit:
+        type: string
+        const: count
+        description: Diferença absoluta de ocorrências.

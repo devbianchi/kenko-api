@@ -17,3 +17,5 @@ Uma decisão aceita não é editada para refletir uma mudança posterior. Para r
 | [0009](0009-carga-de-demonstracao-por-perfil.md) | Carga de demonstração controlada pelo perfil `demo` | Parcialmente substituída por ADR-0011 | 2026-11-16 |
 | [0010](0010-backend-typescript.md) | Backend em TypeScript com Node e Express | Aceita | 2026-11-17 |
 | [0011](0011-carga-de-demonstracao-por-script.md) | Carga de demonstração por script de seed | Aceita | 2026-11-17 |
+| [0012](0012-especificacao-openapi.md) | Especificação OpenAPI independente da hospedagem | Aceita | 2026-11-26 |
+| [0013](0013-endpoint-openapi.md) | Entrega do JSON OpenAPI em GET /api/docs | Aceita | 2026-11-26 |

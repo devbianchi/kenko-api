@@ -1,0 +1,11 @@
+type: object
+description: Controle do passo encerrado por saída explícita. Abandono pode manter a view do passo
+  anterior, mas availableActions fica vazio e novas ações são rejeitadas.
+additionalProperties: false
+required:
+  - type
+properties:
+  type:
+    type: string
+    const: closed
+    description: Controle fechado.

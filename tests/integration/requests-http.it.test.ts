@@ -7,7 +7,7 @@ import { runSeed } from '../../src/database/seed';
 import { fixedClock } from '../../src/shared/clock';
 import { startPostgres } from '../support/postgres';
 import { runRequestsFile } from '../support/requests-http';
-import { assertOpenApiResponse } from '../support/openapi';
+import { assertOpenApiResponse, assertSchema, openapi } from '../support/openapi';
 
 const NOW = '2026-11-10T15:00:00Z'; // 12:00 em Brasília: a demonstração é relativa a este dia.
 
@@ -29,6 +29,14 @@ describe('requests.http da entrega', () => {
   it('executa o fluxo completo do bot, o painel e os erros esperados, na ordem do arquivo', async () => {
     const app = buildApp({ pool, clock: fixedClock(NOW), corsOrigins: [] });
     const executed = await runRequestsFile(app, 'requests.http', fixedClock(NOW), (response) => {
+      // O cenário de rota inexistente usa o envelope geral, sem inventar uma operação no contrato.
+      if (response.method === 'GET' && response.url === '/api/inexistente') {
+        expect(response.status).toBe(404);
+        expect(response.body).toMatchObject({ error: { code: 'ROUTE_NOT_FOUND' } });
+        assertSchema(openapi.components.schemas.ErrorResponse!, response.body, 'rota inexistente');
+        expect(response.headers['x-request-id']).toMatch(/^[A-Za-z0-9._-]{1,64}$/);
+        return;
+      }
       assertOpenApiResponse(
         response.method,
         response.url,
